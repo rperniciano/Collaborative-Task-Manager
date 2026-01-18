@@ -1,0 +1,109 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.0.2",
+      "isInstalled": true,
+      "creationTime": "01/18/2026 21:18:00 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "CollaborativeTaskManager.Application": {
+      "path": "src/CollaborativeTaskManager.Application/CollaborativeTaskManager.Application.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.Application.Tests": {
+      "path": "test/CollaborativeTaskManager.Application.Tests/CollaborativeTaskManager.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "CollaborativeTaskManager.Domain.Shared": {
+      "path": "src/CollaborativeTaskManager.Domain.Shared/CollaborativeTaskManager.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.Application.Contracts": {
+      "path": "src/CollaborativeTaskManager.Application.Contracts/CollaborativeTaskManager.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.HttpApi": {
+      "path": "src/CollaborativeTaskManager.HttpApi/CollaborativeTaskManager.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.HttpApi.Client": {
+      "path": "src/CollaborativeTaskManager.HttpApi.Client/CollaborativeTaskManager.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.EntityFrameworkCore.Tests": {
+      "path": "test/CollaborativeTaskManager.EntityFrameworkCore.Tests/CollaborativeTaskManager.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "CollaborativeTaskManager.EntityFrameworkCore": {
+      "path": "src/CollaborativeTaskManager.EntityFrameworkCore/CollaborativeTaskManager.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.TestBase": {
+      "path": "test/CollaborativeTaskManager.TestBase/CollaborativeTaskManager.TestBase.abppkg",
+      "folder": "test"
+    },
+    "CollaborativeTaskManager.Domain.Tests": {
+      "path": "test/CollaborativeTaskManager.Domain.Tests/CollaborativeTaskManager.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "CollaborativeTaskManager.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/CollaborativeTaskManager.HttpApi.Client.ConsoleTestApp/CollaborativeTaskManager.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "CollaborativeTaskManager.DbMigrator": {
+      "path": "src/CollaborativeTaskManager.DbMigrator/CollaborativeTaskManager.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.HttpApi.Host": {
+      "path": "src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManager.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "CollaborativeTaskManager.Domain": {
+      "path": "src/CollaborativeTaskManager.Domain/CollaborativeTaskManager.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

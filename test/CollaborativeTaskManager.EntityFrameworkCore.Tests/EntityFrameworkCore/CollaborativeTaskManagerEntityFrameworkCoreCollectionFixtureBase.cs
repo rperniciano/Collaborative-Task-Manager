@@ -1,0 +1,9 @@
+﻿using CollaborativeTaskManager.EntityFrameworkCore;
+using Xunit;
+
+namespace CollaborativeTaskManager.EntityFrameworkCore;
+
+public class CollaborativeTaskManagerEntityFrameworkCoreCollectionFixtureBase : ICollectionFixture<CollaborativeTaskManagerEntityFrameworkCoreFixture>
+{
+
+}

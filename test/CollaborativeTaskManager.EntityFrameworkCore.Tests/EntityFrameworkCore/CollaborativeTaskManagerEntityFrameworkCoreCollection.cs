@@ -1,0 +1,9 @@
+﻿using Xunit;
+
+namespace CollaborativeTaskManager.EntityFrameworkCore;
+
+[CollectionDefinition(CollaborativeTaskManagerTestConsts.CollectionDefinitionName)]
+public class CollaborativeTaskManagerEntityFrameworkCoreCollection : ICollectionFixture<CollaborativeTaskManagerEntityFrameworkCoreFixture>
+{
+
+}

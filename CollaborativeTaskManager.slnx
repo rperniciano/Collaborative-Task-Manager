@@ -1,0 +1,23 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/CollaborativeTaskManager.Domain/CollaborativeTaskManager.Domain.csproj" />
+        <Project Path="src/CollaborativeTaskManager.Application/CollaborativeTaskManager.Application.csproj" />
+        <Project Path="src/CollaborativeTaskManager.EntityFrameworkCore/CollaborativeTaskManager.EntityFrameworkCore.csproj" />
+        <Project Path="src/CollaborativeTaskManager.Domain.Shared/CollaborativeTaskManager.Domain.Shared.csproj" />
+        <Project Path="src/CollaborativeTaskManager.Application.Contracts/CollaborativeTaskManager.Application.Contracts.csproj" />
+        <Project Path="src/CollaborativeTaskManager.HttpApi/CollaborativeTaskManager.HttpApi.csproj" />
+        <Project Path="src/CollaborativeTaskManager.HttpApi.Client/CollaborativeTaskManager.HttpApi.Client.csproj" />
+        <Project Path="src/CollaborativeTaskManager.DbMigrator/CollaborativeTaskManager.DbMigrator.csproj" />
+        <Project Path="src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManager.HttpApi.Host.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/CollaborativeTaskManager.Application.Tests/CollaborativeTaskManager.Application.Tests.csproj" />
+        <Project Path="test/CollaborativeTaskManager.EntityFrameworkCore.Tests/CollaborativeTaskManager.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/CollaborativeTaskManager.TestBase/CollaborativeTaskManager.TestBase.csproj" />
+        <Project Path="test/CollaborativeTaskManager.Domain.Tests/CollaborativeTaskManager.Domain.Tests.csproj" />
+        <Project Path="test/CollaborativeTaskManager.HttpApi.Client.ConsoleTestApp/CollaborativeTaskManager.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>

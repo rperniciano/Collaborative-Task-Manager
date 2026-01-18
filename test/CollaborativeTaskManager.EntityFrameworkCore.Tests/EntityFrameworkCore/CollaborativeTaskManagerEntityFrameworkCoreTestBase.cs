@@ -1,0 +1,8 @@
+﻿using Volo.Abp;
+
+namespace CollaborativeTaskManager.EntityFrameworkCore;
+
+public abstract class CollaborativeTaskManagerEntityFrameworkCoreTestBase : CollaborativeTaskManagerTestBase<CollaborativeTaskManagerEntityFrameworkCoreTestModule>
+{
+
+}
