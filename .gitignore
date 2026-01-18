@@ -284,3 +284,4 @@ CLAUDE.md
 CollaborativeTaskManager.db-shm
 .playwright-mcp
 CollaborativeTaskManager.db-wal
+CollaborativeTaskManager.db

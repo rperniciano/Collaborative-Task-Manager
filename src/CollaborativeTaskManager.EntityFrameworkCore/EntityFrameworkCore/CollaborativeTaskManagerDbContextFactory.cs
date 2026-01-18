@@ -17,7 +17,7 @@ public class CollaborativeTaskManagerDbContextFactory : IDesignTimeDbContextFact
         CollaborativeTaskManagerEfCoreEntityExtensionMappings.Configure();
 
         var builder = new DbContextOptionsBuilder<CollaborativeTaskManagerDbContext>()
-            .UseSqlite(configuration.GetConnectionString("Default"));
+            .UseSqlServer(configuration.GetConnectionString("Default"));
         
         return new CollaborativeTaskManagerDbContext(builder.Options);
     }

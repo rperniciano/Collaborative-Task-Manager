@@ -192,3 +192,21 @@
 - Feature #6: User can log out (depends on #5)
 - Feature #75: Invalid password shows error (depends on #5)
 - Feature #76: Non-existent user shows error (depends on #5)
+
+## Testing Session - 2026-01-18 22:42
+
+### Regression Test: Feature #5 - User can log in with valid credentials
+- Initial test: FAILED (regression detected)
+- Root cause: appsettings.Development.json had SQL Server connection string instead of SQLite
+- Error: "ArgumentException: Connection string keyword 'server' is not supported"
+- Fix applied: Updated connection string to use SQLite (Data Source=../../CollaborativeTaskManager.db;)
+- Retest: PASSED - all 6 verification steps successful
+  1. Navigate to login page - success
+  2. Enter registered username (testuser4_verify) - success
+  3. Enter correct password - success
+  4. Submit login form - success
+  5. Verify redirect to home page - success
+  6. Verify user session persists after refresh - success
+- Screenshot saved: .playwright-mcp/regression-feature-5-login-success.png
+
+[Testing] Feature #5 regression fixed and verified - now passing
