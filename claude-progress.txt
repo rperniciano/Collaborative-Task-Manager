@@ -140,3 +140,55 @@
 - Feature #74: Registration with existing email shows error (depends on #4)
 - Feature #99: Empty board shows create task CTA (depends on #4)
 - Feature #101: No members shows invite prompt (depends on #4)
+
+## Testing Session - 2026-01-18 22:41
+
+### Regression Test: Feature #4 - User can register with valid credentials
+- Status: PASSED (still working)
+- Verified all 6 steps:
+  1. Navigate to register page - success
+  2. Enter unique email (regtest_1737236400@example.com) - success
+  3. Enter valid password meeting requirements (Test123456!) - success
+  4. Submit registration form - success
+  5. Verify success/redirect - user redirected to home and logged in
+  6. Verify user can log in with credentials - logged out and back in successfully
+- No console errors
+- Screenshots saved:
+  - .playwright-mcp/regression-feature-4-registration-success.png
+  - .playwright-mcp/regression-feature-4-login-success.png
+
+[Testing] Feature #4 verified - still passing
+
+## Session 4 - 2026-01-18 (Parallel Agent - Feature #5)
+
+### Status
+- Features: 4/124 passing (3.2%)
+- Current feature: #5 "User can log in with valid credentials" - COMPLETED
+
+### Accomplished This Session
+
+1. **Verified Feature #5: User can log in with valid credentials**
+   - Navigated from home page to login page via "Accedi" link
+   - URL: https://localhost:44396/Account/Login?ReturnUrl=...
+   - Filled in login form with registered user credentials:
+     - Username: testuser4_verify
+     - Password: Test123456!
+   - Submitted the login form (clicked "Accedi" button)
+   - Verified successful login:
+     - ✅ User was redirected to the main application (http://localhost:4200)
+     - ✅ User is logged in (username "testuser4_verify" visible in header)
+     - ✅ Session persists after page refresh
+     - ✅ No console errors
+   - Screenshots saved:
+     - .playwright-mcp/.playwright-mcp/feature-5-login-success.png
+     - .playwright-mcp/.playwright-mcp/feature-5-session-persists.png
+
+### Notes
+- ABP Identity handles login authentication via OpenID Connect/OAuth
+- Login uses cookie-based session with sliding expiration (ABP defaults)
+- Login page supports both username and email for authentication
+
+### Next Steps (Now Unblocked)
+- Feature #6: User can log out (depends on #5)
+- Feature #75: Invalid password shows error (depends on #5)
+- Feature #76: Non-existent user shows error (depends on #5)
