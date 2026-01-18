@@ -210,3 +210,52 @@
 - Screenshot saved: .playwright-mcp/regression-feature-5-login-success.png
 
 [Testing] Feature #5 regression fixed and verified - now passing
+
+## Testing Session - 2026-01-19 00:39
+
+### Regression Test: Feature #1 - App loads without errors
+- Status: PASSED (still working)
+- All 4 verification steps passed:
+  1. Navigate to http://localhost:4200 - success
+  2. Console errors check - none found (only localization warnings)
+  3. Page renders content - ABP welcome page fully rendered with sidebar, content sections
+  4. Network requests - all 4 API calls returned 200 OK
+- Screenshot saved: .playwright-mcp/regression-feature-1-initial.png
+
+[Testing] Feature #1 verified - still passing
+
+## Session 5 - 2026-01-19 (Parallel Agent - Feature #8)
+
+### Status
+- Features: 6/124 passing (4.8%)
+- Current feature: #8 "Three default columns display correctly" - COMPLETED
+
+### Accomplished This Session
+
+1. **Verified Feature #8: Three default columns display correctly**
+   - Registered new user (testuser_feature8) and was redirected to board
+   - Navigated to http://localhost:4200/board
+   - API call to /api/app/board/board returned 200 with board and columns data
+   - Verified all three columns display correctly:
+     - ✅ "To-Do" column exists with "0 tasks" count
+     - ✅ "In Progress" column exists with "0 tasks" count
+     - ✅ "Done" column exists with "0 tasks" count
+   - Verified columns are displayed side by side in kanban layout
+   - Each column has:
+     - Column header with name
+     - Task count badge
+     - "Drop a task here" placeholder
+     - "+ Add task" button at bottom
+   - No console errors (only localization warnings)
+   - Screenshot saved: .playwright-mcp/feature-8-three-columns.png
+
+### Notes
+- New users get a board automatically created upon registration
+- Board is named "My Board" by default
+- Columns are pre-seeded with the three default columns (To-Do, In Progress, Done)
+- Board component fetches data from /api/app/board/board endpoint
+
+### Next Steps (Now Unblocked)
+- Feature #19: User can create a task (depends on #8)
+- Feature #37: Drag column to reorder (depends on #8)
+- Feature #100: Empty column shows placeholder (depends on #8)
