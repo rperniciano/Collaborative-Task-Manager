@@ -280,3 +280,7 @@ features.db-wal
 
 prompts
 CLAUDE.md
+.agent.lock
+CollaborativeTaskManager.db-shm
+.playwright-mcp
+CollaborativeTaskManager.db-wal

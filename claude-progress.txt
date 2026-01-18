@@ -43,3 +43,53 @@
 - init.sh - Script to start backend server
 - start-backend.sh - Alternative script to start backend
 - .playwright-mcp/feature-1-app-loads.png - Verification screenshot
+
+## Testing Session - 2026-01-18 22:35
+
+### Regression Test: Feature #1 - App loads without errors
+- Status: PASSED (still working)
+- Verified all 4 steps:
+  1. Navigation to http://localhost:4200 - success
+  2. Console errors check - none found
+  3. Page renders content - ABP welcome page fully rendered
+  4. Network requests - all 4 API calls returned 200 OK
+- Screenshot saved: .playwright-mcp/.playwright-mcp/regression-feature-1.png
+
+[Testing] Feature #1 verified - still passing
+
+## Session 2 - 2026-01-18 (Parallel Agent - Feature #3)
+
+### Status
+- Features: 2/124 passing (1.6%)
+- Current feature: #3 "Register page renders correctly" - COMPLETED
+
+### Accomplished This Session
+
+1. **Verified Feature #3: Register page renders correctly**
+   - Navigated from home page to login page via "Accedi" link
+   - Navigated from login page to register page via "Registrati" link
+   - URL: https://localhost:44396/Account/Register?returnUrl=...
+   - Verified all required form elements:
+     - ✅ "Nome utente *" (Username) textbox - visible
+     - ✅ "Indirizzo e-mail *" (Email) textbox - visible
+     - ✅ "Password *" textbox - visible
+     - ✅ "Registrati" (Register) button - visible
+     - ✅ "Accedi" link to login page - visible and functional
+   - No console errors
+   - Screenshots saved:
+     - .playwright-mcp/feature-3-register-page.png
+     - .playwright-mcp/feature-3-register-fullpage.png
+
+2. **Verified navigation between login and register pages**
+   - Login -> Register link works
+   - Register -> Login link works
+
+### Notes
+- App is in Italian locale (it) by default
+- ABP Identity provides built-in registration functionality
+- Registration form includes: Username, Email, Password (no confirm password field in ABP default)
+
+### Next Steps
+- Feature #4: User can register with valid credentials (depends on #3) - now unblocked
+- Feature #86: Email format validated on register (depends on #3) - now unblocked
+- Feature #87: Password requirements enforced (depends on #3) - now unblocked
