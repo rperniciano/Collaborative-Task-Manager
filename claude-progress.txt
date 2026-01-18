@@ -1,0 +1,45 @@
+# Claude Progress Notes - CollaBoard Collaborative Task Manager
+
+## Session 1 - 2025-01-18
+
+### Status
+- Features: 1/124 passing (0.8%)
+- Current feature: #1 "App loads without errors" - COMPLETED
+
+### Accomplished This Session
+
+1. **Understood project structure**
+   - ABP.io Framework (.NET 9) backend
+   - Angular 20 frontend with ABP Angular UI
+   - SQLite database (CollaborativeTaskManager.db)
+   - Backend runs on https://localhost:44396
+   - Frontend runs on http://localhost:4200
+
+2. **Started the backend server**
+   - Created init.sh and start-backend.sh scripts to facilitate starting the backend
+   - Backend successfully started and responding on port 44396
+
+3. **Verified Feature #1: App loads without errors**
+   - Navigated to http://localhost:4200
+   - Verified no JavaScript console errors
+   - Verified page renders content (ABP welcome page)
+   - Verified all network requests return 200:
+     - /.well-known/openid-configuration
+     - /.well-known/jwks
+     - /api/abp/application-configuration
+     - /api/abp/application-localization
+   - Screenshot saved: .playwright-mcp/feature-1-app-loads.png
+
+### Notes
+- There's a duplicate PackageReference warning for Microsoft.EntityFrameworkCore.InMemory in HttpApi.Host.csproj (minor issue, doesn't affect functionality)
+- App is in Italian (it) locale by default
+
+### Next Steps
+- Feature #2: Login page renders correctly (depends on #1)
+- Feature #3: Register page renders correctly (depends on #1)
+- Many features blocked by authentication features (#2-#6)
+
+### Files Created
+- init.sh - Script to start backend server
+- start-backend.sh - Alternative script to start backend
+- .playwright-mcp/feature-1-app-loads.png - Verification screenshot
