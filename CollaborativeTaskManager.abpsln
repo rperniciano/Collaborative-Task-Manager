@@ -39,7 +39,7 @@
     "distributedEventBus": "none",
     "databaseProvider": "ef",
     "runDbMigrator": "",
-    "databaseManagementSystem": "sqlite",
+    "databaseManagementSystem": "sqlserver",
     "separateTenantSchema": "false",
     "createInitialMigration": "",
     "theme": "leptonx-lite",
@@ -53,6 +53,6 @@
     "sampleCrudPage": "false",
     "selectedLanguages": ["English", "Arabic", "Chinese (Simplified)", "Chinese (Traditional)", "Czech", "English (United Kingdom)", "Finnish", "French", "German (Germany)", "Hindi ", "Hungarian", "Icelandic", "Italian", "Portuguese (Brazil)", "Romanian (Romania)", "Russian", "Slovak", "Spanish", "Swedish", "Turkish", ],
     "defaultLanguage": "English",
-    "createCommand": "abp new CollaborativeTaskManager -t app --ui-framework angular --database-provider ef --database-management-system sqlite --theme leptonx-lite --skip-migration  --skip-migrator  --without-cms-kit --dont-run-install-libs --dont-run-bundling -no-file-management"
+    "createCommand": "abp new CollaborativeTaskManager -t app --ui-framework angular --database-provider ef --database-management-system sqlserver --theme leptonx-lite --skip-migration  --skip-migrator  --without-cms-kit --dont-run-install-libs --dont-run-bundling -no-file-management"
   }
 }

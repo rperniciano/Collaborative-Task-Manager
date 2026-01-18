@@ -1,11 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.EntityFrameworkCore.Sqlite;
+using Volo.Abp.EntityFrameworkCore.SqlServer;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
@@ -16,12 +16,11 @@ namespace CollaborativeTaskManager.EntityFrameworkCore;
 [DependsOn(
     typeof(CollaborativeTaskManagerApplicationTestModule),
     typeof(CollaborativeTaskManagerEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule)
+    typeof(AbpEntityFrameworkCoreSqlServerModule)
 )]
 public class CollaborativeTaskManagerEntityFrameworkCoreTestModule : AbpModule
 {
-    private SqliteConnection? _sqliteConnection;
-
+    private SqlConnection? _sqlConnection;
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<FeatureManagementOptions>(options =>
@@ -36,35 +35,35 @@ public class CollaborativeTaskManagerEntityFrameworkCoreTestModule : AbpModule
         });
         context.Services.AddAlwaysDisableUnitOfWorkTransaction();
 
-        ConfigureInMemorySqlite(context.Services);
+        ConfigureInMemorySqlServer(context.Services);
 
     }
 
-    private void ConfigureInMemorySqlite(IServiceCollection services)
+    private void ConfigureInMemorySqlServer(IServiceCollection services)
     {
-        _sqliteConnection = CreateDatabaseAndGetConnection();
+        _sqlConnection = CreateDatabaseAndGetConnection();
 
         services.Configure<AbpDbContextOptions>(options =>
         {
             options.Configure(context =>
             {
-                context.DbContextOptions.UseSqlite(_sqliteConnection);
+                context.DbContextOptions.UseSqlServer(_sqlConnection);
             });
         });
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)
     {
-        _sqliteConnection?.Dispose();
+        _sqlConnection?.Dispose();
     }
 
-    private static SqliteConnection CreateDatabaseAndGetConnection()
+    private static SqlConnection CreateDatabaseAndGetConnection()
     {
-        var connection = new SqliteConnection("Data Source=:memory:");
+        var connection = new SqlConnection("Data Source=:memory:");
         connection.Open();
 
         var options = new DbContextOptionsBuilder<CollaborativeTaskManagerDbContext>()
-            .UseSqlite(connection)
+            .UseSqlServer(connection)
             .Options;
 
         using (var context = new CollaborativeTaskManagerDbContext(options))

@@ -1,3 +1,4 @@
+using CollaborativeTaskManager.Domain.Boards;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -27,6 +28,9 @@ public class CollaborativeTaskManagerDbContext :
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
+    // CollaBoard entities
+    public DbSet<Board> Boards { get; set; }
+    public DbSet<Column> Columns { get; set; }
 
     #region Entities from the modules
 
@@ -81,11 +85,21 @@ public class CollaborativeTaskManagerDbContext :
         
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "YourEntities", CollaborativeTaskManagerConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Board>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "Boards", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.OwnerId);
+        });
+
+        builder.Entity<Column>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "Columns", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.BoardId);
+            b.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

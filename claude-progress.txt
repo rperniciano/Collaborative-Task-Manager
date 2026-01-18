@@ -11,7 +11,7 @@
 1. **Understood project structure**
    - ABP.io Framework (.NET 9) backend
    - Angular 20 frontend with ABP Angular UI
-   - SQLite database (CollaborativeTaskManager.db)
+   - SQLServer database (Default ConnectionString)
    - Backend runs on https://localhost:44396
    - Frontend runs on http://localhost:4200
 
@@ -197,9 +197,9 @@
 
 ### Regression Test: Feature #5 - User can log in with valid credentials
 - Initial test: FAILED (regression detected)
-- Root cause: appsettings.Development.json had SQL Server connection string instead of SQLite
+- Root cause: appsettings.Development.json had SQL Server connection string instead of SQLServer
 - Error: "ArgumentException: Connection string keyword 'server' is not supported"
-- Fix applied: Updated connection string to use SQLite (Data Source=../../CollaborativeTaskManager.db;)
+- Fix applied: Updated connection string to use SQLServer (Data Source=Server=CIANO\\CIANO;Database=collaborative-task-manager;Trusted_Connection=True;TrustServerCertificate=true;MultipleActiveResultSets=true;Pooling=true;Max Pool Size=100;)
 - Retest: PASSED - all 6 verification steps successful
   1. Navigate to login page - success
   2. Enter registered username (testuser4_verify) - success
