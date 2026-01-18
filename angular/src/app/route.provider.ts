@@ -17,5 +17,13 @@ function configureRoutes() {
         order: 1,
         layout: eLayoutType.application,
       },
+      {
+        path: '/board',
+        name: 'Board',
+        iconClass: 'fas fa-columns',
+        order: 2,
+        layout: eLayoutType.application,
+        requiredPolicy: '',
+      },
   ]);
 }
