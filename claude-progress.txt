@@ -1597,3 +1597,69 @@ Skipping Feature #43 due to infrastructure blocker. The implementation is comple
 - No code changes needed - feature remains passing
 
 [Testing] Feature #124 verified - still passing
+
+## Session - 2026-01-19 (Feature #43 - Invite Link Login Flow)
+
+### Status
+- Features: 30/124 passing (24.2%)
+- Current feature: #43 "Invite link login flow works" - BLOCKED (infrastructure)
+
+### Feature #43 Details
+- **Name**: Invite link login flow works
+- **Description**: Existing user can accept invite after login
+- **Dependencies**: Features #5 (Route guards), #39 (Owner can invite member) - both PASSING
+- **Steps**:
+  1. Owner creates invite for existing user email
+  2. User opens invite link
+  3. User logs in
+  4. Verify redirect back to invite acceptance
+  5. Accept invite
+  6. Verify user added to board
+
+### Critical Bug Discovered & Fixed
+
+**Issue**: AmbiguousMatchException - API endpoint conflicts
+- The ABP framework auto-generates API endpoints for Application Services
+- We also have a manual BoardController at `/api/app/board/*`
+- This caused runtime conflicts: "The request matched multiple endpoints"
+- Error occurred on ALL board-related API calls
+
+**Root Cause**: Missing `[RemoteService(IsEnabled = false)]` attribute on BoardAppService
+
+**Fix Applied**:
+- Added `[RemoteService(IsEnabled = false)]` attribute to `BoardAppService`
+- This prevents ABP from auto-generating duplicate API endpoints
+- The manual BoardController will now be the sole handler for board routes
+
+**Files Modified**:
+- `src/CollaborativeTaskManager.Application/Boards/BoardAppService.cs`
+
+### Blocker Status
+**INFRASTRUCTURE BLOCKER**: Backend server (.NET) needs to be restarted for fix to take effect.
+
+- The fix is committed but the running server has the old code
+- Cannot kill dotnet process (restricted command)
+- Cannot restart server directly (dotnet command restricted)
+
+### Action Required
+To complete Feature #43 verification, restart the backend server:
+```bash
+# Stop the running server (Ctrl+C or Task Manager)
+# Then restart:
+cd "D:/Programmi/PORTFOLIO/Collaborative Task Manager"
+dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
+```
+
+After server restart:
+1. The AmbiguousMatchException will be fixed
+2. Feature #43 can be verified following the test steps
+
+### Git Commit
+- Commit: `4688b31` - "fix: Add RemoteService(IsEnabled=false) to prevent API endpoint ambiguity"
+
+### Decision
+Feature #43 cannot be completed this session due to infrastructure blocker.
+The fix is in place and committed. Next session should:
+1. Restart the backend server
+2. Verify the API endpoints work (no more ambiguity error)
+3. Complete Feature #43 testing
