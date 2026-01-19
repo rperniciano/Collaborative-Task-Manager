@@ -4211,3 +4211,24 @@ Commit: 011c9ab
 Message: "feat: Verify and mark Feature #42 as passing - Invite link registration flow"
 
 [Session] Feature #42 completed successfully - 43/124 features passing (34.7%)
+[Testing] Feature #74 verified - still passing
+
+## Regression Test Session - 2026-01-19 22:45 (Feature #74)
+
+### Status
+- Feature: #74 "Registration with existing email shows error"
+- Result: PASSED ✅ - No regression found
+
+### Verification Results
+1. Register user with email X: ✅
+2. Try to register with same email: ✅
+3. Verify error displayed: ✅ ("L'email ... è già stata accettata")
+4. Verify original account unaffected: ✅
+
+### Screenshots
+- .playwright-mcp/feature-74-registration-page.png
+- .playwright-mcp/feature-74-first-registration-success.png
+- .playwright-mcp/feature-74-duplicate-email-error.png
+- .playwright-mcp/feature-74-original-account-still-works.png
+
+[Testing] Session complete - verified Feature #74 (still passing)

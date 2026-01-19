@@ -17,6 +17,22 @@
     </div>
   }
 
+  <!-- Disconnected Banner -->
+  @if (!signalR.isConnected() && board() && !loading()) {
+    <div class="disconnected-banner">
+      <div class="banner-content">
+        <i class="fa fa-exclamation-triangle me-2"></i>
+        <span class="banner-message">
+          @if (signalR.isConnecting()) {
+            Reconnecting to real-time service...
+          } @else {
+            Disconnected from real-time service. Changes may not sync.
+          }
+        </span>
+      </div>
+    </div>
+  }
+
   <!-- Board View -->
   @if (board() && !loading()) {
     <div class="board-header">
