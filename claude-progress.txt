@@ -1952,3 +1952,83 @@ Skipping Feature #43 due to infrastructure blocker. The fix has been applied but
 ### Next Steps
 - Continue with other pending features
 - Progress: 36/124 features passing (29.0%)
+
+## Testing Session - 2026-01-19 (Feature #49 Regression Test)
+
+### Status
+- Features: 36/124 passing (29.0%)
+- Regression test: Feature #49 "API returns 401 for unauthenticated requests" - STILL PASSING ✅
+
+### Feature Details
+- **ID**: #49
+- **Category**: security
+- **Name**: API returns 401 for unauthenticated requests
+- **Description**: Protected API endpoints reject anonymous access
+
+### Verification Results
+1. ✅ Step 1: Make request to /api/app/board/board without auth token
+   - Result: HTTP 401 Unauthorized
+2. ✅ Step 2: Verify response status is 401 - PASSED
+3. ✅ Step 3: Make request to /api/app/task/all without auth
+   - Result: HTTP 401 Unauthorized  
+4. ✅ Step 4: Verify response status is 401 - PASSED
+
+### Technical Notes
+- ABP uses XMLHttpRequest header to distinguish API calls from browser requests
+- Without X-Requested-With header: returns 302 redirect to login
+- With X-Requested-With: XMLHttpRequest header: returns 401 Unauthorized
+- Both board and task endpoints protected with [Authorize] attribute
+- Verified both via curl commands and browser JavaScript fetch
+
+### No Regression Found
+Feature continues to work correctly. No code changes needed.
+
+[Testing] Feature #49 verified - still passing
+
+## Session - 2026-01-19 (Feature #52 - Invalid/Expired Tokens Rejected)
+
+### Status
+- Features: 37/124 passing (29.8%)
+- Completed feature: #52
+
+### Feature #52 Details
+- **Name**: Invalid/expired tokens rejected
+- **Category**: Security
+- **Description**: Authentication validates token integrity
+- **Dependencies**: Feature #49 (API returns 401 for unauthenticated) - PASSING
+- **Steps**:
+  1. Obtain valid auth token
+  2. Modify token (corrupt it)
+  3. Make API request with corrupted token
+  4. Verify request rejected
+
+### Verification Results - ALL STEPS PASSED ✅
+
+**Step 1: Obtain valid auth token**
+- Logged in as owner_f43_verify via browser
+- Extracted JWT access token from localStorage
+- Token format: RS256-signed JWT via OpenIddict
+
+**Step 2-4: Corrupted Token Tests**
+
+| Test | Token Type | HTTP Result | Status |
+|------|-----------|-------------|--------|
+| Valid Token | Original valid JWT | 200 | ✅ Control |
+| Corrupted Signature | Changed last char | 401 | ✅ |
+| Corrupted Payload | Replaced with gibberish | 401 | ✅ |
+| Invalid Format | "not_a_valid_token_at_all" | 401 | ✅ |
+| None Algorithm Attack | JWT with alg:"none" | 401 | ✅ |
+| Fake Signature | Signature replaced with A's | 401 | ✅ |
+
+### Technical Notes
+- System uses OpenIddict (OAuth 2.0/OpenID Connect) with RS256 JWT signing
+- Token validation performed by ASP.NET Core JWT Bearer middleware
+- All invalid tokens properly rejected with HTTP 401 Unauthorized
+- "None algorithm attack" blocked (important security protection)
+
+### Screenshots
+- .playwright-mcp/feature-52-logged-in-valid-token.png
+
+### Git Commit
+- "test: Verify Feature #52 - Invalid/expired tokens rejected"
+
