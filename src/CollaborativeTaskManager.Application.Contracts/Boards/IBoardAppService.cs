@@ -45,4 +45,9 @@ public interface IBoardAppService : IApplicationService
     /// Removes a member from the board. Only the owner can perform this action.
     /// </summary>
     Task DeleteMemberAsync(Guid userId);
+
+    /// <summary>
+    /// Reorders the columns on the board. Any board member can perform this action.
+    /// </summary>
+    Task ReorderColumnsAsync(ReorderColumnsDto input);
 }

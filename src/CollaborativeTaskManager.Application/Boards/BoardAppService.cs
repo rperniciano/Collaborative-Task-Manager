@@ -321,6 +321,42 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         await _memberRepository.DeleteAsync(membership);
     }
 
+    /// <inheritdoc />
+    public async Task ReorderColumnsAsync(ReorderColumnsDto input)
+    {
+        var board = await GetUserBoardAsync();
+
+        if (input.ColumnIds == null || input.ColumnIds.Count == 0)
+        {
+            throw new BusinessException("Column IDs are required.");
+        }
+
+        // Get all columns for this board
+        var columns = await _columnRepository.GetListAsync(c => c.BoardId == board.Id);
+        var columnDict = columns.ToDictionary(c => c.Id);
+
+        // Validate that all provided IDs belong to this board
+        foreach (var columnId in input.ColumnIds)
+        {
+            if (!columnDict.ContainsKey(columnId))
+            {
+                throw new BusinessException($"Column with ID {columnId} not found on this board.");
+            }
+        }
+
+        // Update order for each column
+        for (int i = 0; i < input.ColumnIds.Count; i++)
+        {
+            var columnId = input.ColumnIds[i];
+            var column = columnDict[columnId];
+            column.Order = i;
+        }
+
+        await _columnRepository.UpdateManyAsync(columns);
+
+        _logger.LogInformation("Columns reordered for board {BoardId}: {ColumnIds}", board.Id, string.Join(", ", input.ColumnIds));
+    }
+
     private async Task<Board> GetUserBoardAsync()
     {
         var currentUserId = CurrentUser.Id!.Value;

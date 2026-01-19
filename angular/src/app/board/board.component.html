@@ -31,10 +31,10 @@
       </div>
     </div>
 
-    <div class="columns-container">
+    <div class="columns-container" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="onColumnDrop($event)">
       @for (column of columnsWithTasks(); track column.id) {
-        <div class="column">
-          <div class="column-header">
+        <div class="column" cdkDrag>
+          <div class="column-header" cdkDragHandle>
             <h2 class="column-title">{{ column.name }}</h2>
             <span class="task-count">{{ getTaskCount(column) }} {{ getTaskCount(column) === 1 ? 'task' : 'tasks' }}</span>
           </div>

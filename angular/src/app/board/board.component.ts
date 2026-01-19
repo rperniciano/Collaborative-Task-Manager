@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService, ConfigStateService, EnvironmentService } from '@abp/ng.core';
 import { Router } from '@angular/router';
 import { SignalRService, UserPresence } from '../services/signalr.service';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
 interface TaskDto {
   id: string;
@@ -71,7 +72,7 @@ interface MemberDto {
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
@@ -419,6 +420,33 @@ export class BoardComponent implements OnInit, OnDestroy {
       return parts[0].charAt(0).toUpperCase();
     }
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+
+  // Column drag and drop methods
+  onColumnDrop(event: CdkDragDrop<ColumnWithTasks[]>): void {
+    if (event.previousIndex === event.currentIndex) {
+      return; // No change
+    }
+
+    const columns = [...this.columnsWithTasks()];
+    moveItemInArray(columns, event.previousIndex, event.currentIndex);
+
+    // Update local state immediately for responsive UI
+    this.columnsWithTasks.set(columns);
+
+    // Persist to backend
+    const columnIds = columns.map(col => col.id);
+    this.http.post(`${this.apiUrl}/api/app/board/reorder-columns`, { columnIds }).subscribe({
+      next: () => {
+        console.log('Columns reordered successfully');
+      },
+      error: (err) => {
+        console.error('Failed to reorder columns:', err);
+        // Revert on error
+        this.loadBoard();
+        alert('Failed to reorder columns. Please try again.');
+      }
+    });
   }
 
   /**
