@@ -125,6 +125,11 @@ export class BoardComponent implements OnInit {
     return currentUser?.userName || 'User';
   }
 
+  get currentUserId(): string | null {
+    const currentUser = this.configState.getOne('currentUser');
+    return currentUser?.id || null;
+  }
+
   ngOnInit(): void {
     if (!this.isAuthenticated) {
       this.authService.navigateToLogin();
@@ -139,6 +144,10 @@ export class BoardComponent implements OnInit {
 
     this.http.get<BoardWithColumnsDto>(`${this.apiUrl}/api/app/board/board`).subscribe({
       next: (data) => {
+        // Fallback for isOwner if not returned by backend (old server version)
+        if (data.isOwner === undefined || data.isOwner === null) {
+          data.isOwner = data.ownerId === this.currentUserId;
+        }
         this.board.set(data);
         // Initialize columns with empty tasks array
         const columnsWithTasks = data.columns.map(col => ({
