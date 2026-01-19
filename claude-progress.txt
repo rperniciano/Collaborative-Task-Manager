@@ -1743,3 +1743,103 @@ The fix is in place and committed. Next session should:
 ### Screenshots
 - .playwright-mcp/feature-74-register-duplicate-email.png
 - .playwright-mcp/feature-74-duplicate-email-error.png
+
+## Testing Session - 2026-01-19 (Feature #87 Regression Test)
+
+### Status
+- Features: 35/124 passing (28.2%)
+- Regression test: Feature #87 "Password requirements enforced" - STILL PASSING
+
+### Verification Results
+1. ✅ Step 1: Navigate to register page - DONE
+2. ✅ Step 2: Enter email (testuser_weak_pwd@test.com) - DONE
+3. ✅ Step 3: Enter weak password ('123') - DONE
+4. ✅ Step 4: Verify password requirements shown - Error displayed:
+   "La password deve essere composta da almeno 6 caratteri."
+   (Password must be at least 6 characters)
+5. ✅ Step 5: Verify submission blocked - Form stayed on register page
+
+### Additional Testing
+- Password "simple" (6 chars) was accepted - meets ABP default minimum
+- ABP Identity default policy: minimum 6 characters
+
+### Screenshots
+- .playwright-mcp/feature-87-register-form.png - Registration form
+- .playwright-mcp/feature-87-weak-password-entered.png - Weak password entered
+- .playwright-mcp/feature-87-password-too-short-error.png - Error message shown
+- .playwright-mcp/feature-87-registration-succeeded.png - 6-char password accepted
+
+### Notes
+- Board API returns error (unrelated CORS/endpoint issue)
+- Password validation verified on server-side ABP Identity
+- No code changes needed - feature remains passing
+
+[Testing] Feature #87 verified - still passing
+
+## Session - 2026-01-19 (Feature #43 - Invite Link Login Flow - Session 3)
+
+### Status
+- Features: 35/124 passing (28.2%)
+- Current feature: #43 "Invite link login flow works" - BLOCKED (infrastructure)
+
+### Feature #43 Details
+- **Name**: Invite link login flow works
+- **Description**: Existing user can accept invite after login
+- **Dependencies**: Features #5 (Route guards), #39 (Owner can invite member) - both PASSING
+- **Steps**:
+  1. Owner creates invite for existing user email
+  2. User opens invite link
+  3. User logs in
+  4. Verify redirect back to invite acceptance
+  5. Accept invite
+  6. Verify user added to board
+
+### Blocker Status
+**INFRASTRUCTURE BLOCKER**: AmbiguousMatchException - backend needs rebuild/restart
+
+The API endpoint `/api/app/board/board` is returning an AmbiguousMatchException because both:
+1. `BoardController.GetBoardAsync` (manual controller)
+2. `BoardAppService.GetBoardAsync` (ABP auto-generated)
+
+are registered for the same route.
+
+### Fix Applied This Session
+Added `[RemoteService(IsEnabled = false)]` attribute to `IBoardAppService` interface:
+- File: `src/CollaborativeTaskManager.Application.Contracts/Boards/IBoardAppService.cs`
+- The attribute was already on `BoardAppService.cs` but ABP auto-API generation follows the interface
+
+### Why Fix Requires Server Restart
+- Cannot run `dotnet` commands (blocked in this environment)
+- The `init.sh` script runs dotnet internally but doesn't stop the existing server process
+- The old server process is still running with the old code
+
+### Commands Needed (Must be run manually)
+```bash
+# Stop all dotnet processes first, then restart:
+# On Windows:
+taskkill /IM dotnet.exe /F
+
+# Then rebuild and run:
+cd "D:/Programmi/PORTFOLIO/Collaborative Task Manager/src/CollaborativeTaskManager.HttpApi.Host"
+dotnet run
+```
+
+### Code Changes Made
+- `src/CollaborativeTaskManager.Application.Contracts/Boards/IBoardAppService.cs`:
+  - Added `using Volo.Abp;`
+  - Added `[RemoteService(IsEnabled = false)]` attribute to interface
+
+### Test User Created
+- Username: owner_f43_test
+- Email: owner_f43_test@test.com
+- Password: Test123456!
+- Status: User registered but cannot access board due to API error
+
+### Decision
+Skipping Feature #43 due to infrastructure blocker. The fix has been applied but requires server restart.
+
+### Next Steps for Operator
+1. Stop the running dotnet server process
+2. Rebuild and restart: `dotnet run --project src/CollaborativeTaskManager.HttpApi.Host`
+3. Verify the API endpoint works: `curl -k https://localhost:44396/api/app/board/board`
+4. Feature #43 can then be tested following the verification steps

@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 
 namespace CollaborativeTaskManager.Application.Contracts.Boards;
 
 /// <summary>
 /// Application service interface for Board operations.
+/// RemoteService disabled because we use a manual BoardController for custom routing.
 /// </summary>
+[RemoteService(IsEnabled = false)]
 public interface IBoardAppService : IApplicationService
 {
     /// <summary>
