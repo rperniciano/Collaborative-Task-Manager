@@ -454,6 +454,9 @@ export class BoardComponent implements OnInit, OnDestroy {
    */
   private async connectToSignalR(boardId: string): Promise<void> {
     try {
+      // Set up event handlers before connecting
+      this.setupSignalRHandlers();
+
       const connected = await this.signalR.connect(boardId);
       if (connected) {
         console.log('[Board] Connected to SignalR for board:', boardId);
@@ -463,5 +466,113 @@ export class BoardComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('[Board] SignalR connection error:', error);
     }
+  }
+
+  /**
+   * Set up SignalR event handlers for real-time updates.
+   */
+  private setupSignalRHandlers(): void {
+    // Handle task created by another user
+    this.signalR.onTaskCreated = (task: TaskDto) => {
+      console.log('[Board] Task created by another user:', task);
+      this.addTaskToColumn(task);
+    };
+
+    // Handle task updated by another user
+    this.signalR.onTaskUpdated = (task: TaskDto) => {
+      console.log('[Board] Task updated by another user:', task);
+      this.updateTaskInColumn(task);
+    };
+
+    // Handle task deleted by another user
+    this.signalR.onTaskDeleted = (taskId: string) => {
+      console.log('[Board] Task deleted by another user:', taskId);
+      this.removeTaskFromColumn(taskId);
+    };
+
+    // Handle task moved by another user
+    this.signalR.onTaskMoved = (taskId: string, newColumnId: string, newOrder: number) => {
+      console.log('[Board] Task moved by another user:', taskId, 'to column', newColumnId);
+      this.moveTaskToColumn(taskId, newColumnId, newOrder);
+    };
+  }
+
+  /**
+   * Add a task to the appropriate column (from SignalR event).
+   */
+  private addTaskToColumn(task: TaskDto): void {
+    const columns = this.columnsWithTasks();
+    const updatedColumns = columns.map(col => {
+      if (col.id === task.columnId) {
+        // Add task and sort by order
+        const tasks = [...col.tasks, task].sort((a, b) => a.order - b.order);
+        return { ...col, tasks };
+      }
+      return col;
+    });
+    this.columnsWithTasks.set(updatedColumns);
+  }
+
+  /**
+   * Update a task in its column (from SignalR event).
+   */
+  private updateTaskInColumn(updatedTask: TaskDto): void {
+    const columns = this.columnsWithTasks();
+    const updatedColumns = columns.map(col => {
+      const taskIndex = col.tasks.findIndex(t => t.id === updatedTask.id);
+      if (taskIndex !== -1) {
+        const tasks = [...col.tasks];
+        tasks[taskIndex] = updatedTask;
+        return { ...col, tasks };
+      }
+      return col;
+    });
+    this.columnsWithTasks.set(updatedColumns);
+  }
+
+  /**
+   * Remove a task from its column (from SignalR event).
+   */
+  private removeTaskFromColumn(taskId: string): void {
+    const columns = this.columnsWithTasks();
+    const updatedColumns = columns.map(col => {
+      const taskExists = col.tasks.some(t => t.id === taskId);
+      if (taskExists) {
+        return { ...col, tasks: col.tasks.filter(t => t.id !== taskId) };
+      }
+      return col;
+    });
+    this.columnsWithTasks.set(updatedColumns);
+  }
+
+  /**
+   * Move a task to a different column (from SignalR event).
+   */
+  private moveTaskToColumn(taskId: string, newColumnId: string, newOrder: number): void {
+    const columns = this.columnsWithTasks();
+
+    // Find and remove task from its current column
+    let movedTask: TaskDto | null = null;
+    let updatedColumns = columns.map(col => {
+      const taskIndex = col.tasks.findIndex(t => t.id === taskId);
+      if (taskIndex !== -1) {
+        movedTask = { ...col.tasks[taskIndex], columnId: newColumnId, order: newOrder };
+        return { ...col, tasks: col.tasks.filter(t => t.id !== taskId) };
+      }
+      return col;
+    });
+
+    // Add task to new column
+    if (movedTask) {
+      updatedColumns = updatedColumns.map(col => {
+        if (col.id === newColumnId) {
+          const tasks = [...col.tasks, movedTask!].sort((a, b) => a.order - b.order);
+          return { ...col, tasks };
+        }
+        return col;
+      });
+    }
+
+    this.columnsWithTasks.set(updatedColumns);
   }
 }

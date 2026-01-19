@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.Users;
 
@@ -184,6 +185,46 @@ public class BoardHub : Hub
     public async Task Ping()
     {
         await Clients.Caller.SendAsync("Pong", DateTime.UtcNow);
+    }
+
+    /// <summary>
+    /// Broadcast that a task was created to all users in the board except the creator.
+    /// </summary>
+    public async Task BroadcastTaskCreated(string boardId, object task)
+    {
+        var groupName = $"board-{boardId}";
+        await Clients.OthersInGroup(groupName).SendAsync("TaskCreated", task);
+        Console.WriteLine($"[SignalR] Broadcasted TaskCreated to board {boardId}");
+    }
+
+    /// <summary>
+    /// Broadcast that a task was updated to all users in the board except the updater.
+    /// </summary>
+    public async Task BroadcastTaskUpdated(string boardId, object task)
+    {
+        var groupName = $"board-{boardId}";
+        await Clients.OthersInGroup(groupName).SendAsync("TaskUpdated", task);
+        Console.WriteLine($"[SignalR] Broadcasted TaskUpdated to board {boardId}");
+    }
+
+    /// <summary>
+    /// Broadcast that a task was deleted to all users in the board except the deleter.
+    /// </summary>
+    public async Task BroadcastTaskDeleted(string boardId, string taskId)
+    {
+        var groupName = $"board-{boardId}";
+        await Clients.OthersInGroup(groupName).SendAsync("TaskDeleted", taskId);
+        Console.WriteLine($"[SignalR] Broadcasted TaskDeleted to board {boardId}");
+    }
+
+    /// <summary>
+    /// Broadcast that a task was moved to all users in the board except the mover.
+    /// </summary>
+    public async Task BroadcastTaskMoved(string boardId, string taskId, string newColumnId, int newOrder)
+    {
+        var groupName = $"board-{boardId}";
+        await Clients.OthersInGroup(groupName).SendAsync("TaskMoved", taskId, newColumnId, newOrder);
+        Console.WriteLine($"[SignalR] Broadcasted TaskMoved to board {boardId}");
     }
 }
 

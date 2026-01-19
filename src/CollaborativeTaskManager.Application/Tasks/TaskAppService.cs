@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CollaborativeTaskManager.Application.Contracts.Tasks;
 using CollaborativeTaskManager.Domain.Boards;
+using CollaborativeTaskManager.Realtime;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
@@ -21,17 +22,20 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
     private readonly IRepository<Column, Guid> _columnRepository;
     private readonly IRepository<Board, Guid> _boardRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
+    private readonly IRealTimeNotificationService _realTimeNotificationService;
 
     public TaskAppService(
         IRepository<BoardTask, Guid> taskRepository,
         IRepository<Column, Guid> columnRepository,
         IRepository<Board, Guid> boardRepository,
-        IRepository<IdentityUser, Guid> userRepository)
+        IRepository<IdentityUser, Guid> userRepository,
+        IRealTimeNotificationService realTimeNotificationService)
     {
         _taskRepository = taskRepository;
         _columnRepository = columnRepository;
         _boardRepository = boardRepository;
         _userRepository = userRepository;
+        _realTimeNotificationService = realTimeNotificationService;
     }
 
     /// <inheritdoc />
@@ -124,7 +128,12 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
 
         await _taskRepository.InsertAsync(task);
 
-        return await MapTaskToDtoAsync(task);
+        var taskDto = await MapTaskToDtoAsync(task);
+
+        // Broadcast to other users in the board via SignalR
+        await _realTimeNotificationService.BroadcastTaskCreatedAsync(board.Id.ToString(), taskDto);
+
+        return taskDto;
     }
 
     /// <inheritdoc />
