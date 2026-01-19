@@ -2,7 +2,7 @@ import sqlite3
 
 conn = sqlite3.connect('features.db')
 cursor = conn.cursor()
-cursor.execute('SELECT id, category, name, description, steps, passes, in_progress, dependencies FROM features WHERE id = 61')
+cursor.execute('SELECT id, category, name, description, steps, passes, in_progress, dependencies FROM features WHERE id = 42')
 row = cursor.fetchone()
 
 if row:

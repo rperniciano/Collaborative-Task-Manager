@@ -29,6 +29,24 @@
           </button>
         }
       </div>
+      <!-- Online Members Section -->
+      <div class="online-members-section">
+        <div class="online-members-label">
+          <i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>
+          Online Members
+        </div>
+        <div class="online-members-list">
+          @if (onlineUsers().length === 0) {
+            <span class="text-muted small">No other members online</span>
+          } @else {
+            @for (user of onlineUsers(); track user.userId) {
+              <span class="online-member-badge" title="{{ user.userName }}">
+                <i class="fa fa-user-circle me-1"></i>{{ user.userName }}
+              </span>
+            }
+          }
+        </div>
+      </div>
     </div>
 
     <div class="columns-container" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="onColumnDrop($event)">

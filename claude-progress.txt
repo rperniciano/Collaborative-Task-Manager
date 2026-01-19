@@ -3845,3 +3845,77 @@ The 500 errors were caused by:
 
 ### Decision: Feature #61 PASSED ✅
 
+
+## Testing Session - 2026-01-19 21:50 (Feature #43 Regression Test)
+
+### Feature #43: Invite link login flow works
+
+**Status**: STILL PASSING ✅
+
+### Feature Description
+Existing user can accept invite after login
+
+### Verification Steps
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Owner creates invite for existing user email | ✅ | Admin invited invitetest_1768855560@example.com |
+| 2. User opens invite link | ✅ | Navigated to /invite/accept?token=... |
+| 3. User logs in | ✅ | Logged in as invitetestuser |
+| 4. Verify redirect back to invite acceptance | ✅ | After login, user returned to invite page |
+| 5. Accept invite | ✅ | Clicked 'Accept Invitation' button |
+| 6. Verify user added to board | ✅ | User appears in Board Members list |
+
+### Test Flow Details
+1. Registered new user 'invitetestuser' with email invitetest_1768855560@example.com
+2. Logged in as admin (board owner)
+3. Sent invite to invitetest_1768855560@example.com via Settings modal
+4. Retrieved invite token via Angular component state
+5. Logged out as admin
+6. Navigated to invite accept URL with token
+7. Saw 'You've been invited\!' page with Log In button
+8. Logged in as invitetestuser
+9. Redirected back to invite page with 'Accept Invitation' button
+10. Clicked Accept - user was added to admin's board
+11. Verified via admin's Settings > Board Members
+
+### Additional Checks
+- No console errors ✅
+- SignalR connected properly ✅
+- Invite removed from pending invites after acceptance ✅
+
+### Screenshots
+- .playwright-mcp/feature-43-invite-login-flow-verified.png
+- .playwright-mcp/feature-43-member-added-verified.png
+
+[Testing] Feature #43 verified - still passing
+
+
+## Testing Session - 2026-01-19 21:51 (Feature #106 Regression Test)
+
+### Feature #106: Tab navigation works through page
+
+**Status**: STILL PASSING ✅
+
+### Verification Results:
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Start at top of page | ✅ | Focused on CollaborativeTaskManager logo |
+| 2. Tab through all interactive elements | ✅ | Successfully tabbed through 20+ elements |
+| 3. Verify logical tab order | ✅ | Order follows visual layout: nav → content → footer |
+| 4. Verify all elements reachable | ✅ | All buttons, links reachable via keyboard |
+
+### Pages Tested:
+- Home page: Full tab cycle verified (logo → nav → content links → footer)
+- Board page: Tab navigation verified (logo → nav → Settings → Add task buttons → footer)
+
+### Additional Checks:
+- No console errors ✅
+- SignalR WebSocket connected ✅
+- Board content loaded correctly ✅
+
+### Screenshot:
+- .playwright-mcp/feature-106-tab-navigation-verified.png
+
+[Testing] Feature #106 verified - still passing

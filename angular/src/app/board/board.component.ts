@@ -153,6 +153,10 @@ export class BoardComponent implements OnInit, OnDestroy {
     return currentUser?.id || null;
   }
 
+  get onlineUsers(): typeof this.signalR['onlineUsers'] {
+    return this.signalR.onlineUsers;
+  }
+
   ngOnInit(): void {
     if (!this.isAuthenticated) {
       this.authService.navigateToLogin();
