@@ -4297,3 +4297,120 @@ Total progress: 44/124 features passing (35.5%)
 ### Commit
 Commit: 1fb2eae
 Message: "feat: Implement disconnected banner for SignalR connection loss (Feature #10)"
+
+[Testing] Regression Test Session - 2026-01-19 22:51 (Feature #18)
+
+### Status: ✅ PASSED - No Regression Found
+
+### Feature Details:
+**Feature #18: Design system colors applied correctly**
+- Category: style
+- Description: UI uses the specified color palette
+
+### Verification Results:
+
+| Step | Status | Details |
+|------|--------|---------|
+| 1. Load the application | ✅ | Application loaded successfully |
+| 2. Primary accent color is blue (#3B82F6) | ✅ | Found in board.component.scss: lines 223, 224, 318, 405, 462, 586 |
+| 3. Background is light gray (#F9FAFB) | ✅ | Found in board.component.scss: lines 5, 379, 447, 488, 605 |
+| 4. Card backgrounds are white | ✅ | Found (#ffffff) in lines 69, 231, 307, 350, 509 |
+| 5. Text is dark gray (#111827) | ✅ | Found in lines 76, 178, 248, 385, 435, 443, 553 |
+
+### Evidence:
+- File analyzed: angular/src/app/board/board.component.scss
+- All design system colors correctly implemented throughout:
+  - Primary blue (#3b82f6) used for buttons, links, focus states, badges
+  - Light gray (#f9fafb) used for backgrounds, modal headers/footers
+  - White (#ffffff) used for cards and content areas
+  - Dark gray (#111827) used for headings and primary text
+  - Secondary gray (#4b5563) used for secondary text with WCAG AA compliance
+
+### Additional Notes:
+- Design system consistently applied across all components
+- Color contrast ratios properly documented (WCAG AA compliance)
+- No regressions found in color implementation
+
+### Screenshot:
+- .playwright-mcp/feature-18-homepage-colors.png - Application loaded
+
+[Testing] Session complete - verified Feature #18 (still passing)
+
+
+## Session - 2026-01-19 22:58 (Feature #17 - Header Bar Displays Correctly)
+
+### Status: ✅ COMPLETED
+
+### Feature Details:
+**Feature #17: Header bar displays correctly**
+- Category: style
+- Dependencies: Feature #7 (Board view displays after login) - PASSING
+
+### Implementation Summary:
+
+**What was implemented:**
+1. Added user dropdown menu to board header
+2. Dropdown includes:
+   - User avatar with auto-generated initials
+   - User display name and email
+   - "My Profile" link to /account/profile
+   - "Logout" button that logs out and redirects to home
+3. Professional styling matching the board design
+4. Proper responsive layout with flexbox
+
+**Code Changes:**
+- `angular/src/app/board/board.component.html`:
+  - Added user dropdown section with NgbDropdown
+  - Replaced static "Welcome" text with interactive dropdown
+  - Dropdown shows user info, profile link, and logout button
+
+- `angular/src/app/board/board.component.ts`:
+  - Added NgbDropdownModule import
+  - Added `currentUserEmail` getter
+  - Added `logout()\) method to handle logout
+  - Imported NgbDropdownModule in component imports
+
+- `angular/src/app/board/board.component.scss`:
+  - Added comprehensive dropdown styling
+  - User dropdown toggle button with avatar, name, and chevron
+  - Dropdown menu with user info section, divider, and action items
+  - Professional hover and focus states
+  - WCAG AA compliant color contrast
+
+**Testing Results:**
+✅ Step 1: Logged in and viewed board
+✅ Step 2: Verified board name "My Board" is displayed in header
+✅ Step 3: Verified online members area is visible (green dot + "admin" user)
+✅ Step 4: Verified user dropdown menu is accessible and functional
+✅ Dropdown opens/closes correctly
+✅ User info displays correctly (initials, name, email)
+✅ "My Profile" link navigates to /account/profile
+✅ No JavaScript errors in console
+✅ Visual appearance matches design specifications
+
+**Screenshots Taken:**
+- `feature-17-board-page-header.png` - Board page with complete header
+- `feature-17-user-dropdown-open.png` - User dropdown menu open showing all options
+- `feature-17-header-displayed.png` - Header with all elements visible
+- `feature-17-complete-verification.png` - Complete verification screenshot
+
+**Verification Checklist:**
+- [x] Board name displayed in header ("My Board")
+- [x] Online members section visible with green indicator
+- [x] User dropdown button accessible
+- [x] Dropdown shows user initials avatar
+- [x] Dropdown shows user display name
+- [x] Dropdown shows user email
+- [x] "My Profile" link works
+- [x] "Logout" button available
+- [x] Visual styling is professional
+- [x] No JavaScript errors
+- [x] Responsive layout works correctly
+
+### Session Outcome:
+**Feature #17 marked as PASSING** ✅
+
+Total progress: 45/124 features passing (36.3%)
+
+### Commit
+

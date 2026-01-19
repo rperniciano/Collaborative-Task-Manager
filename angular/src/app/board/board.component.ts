@@ -6,6 +6,7 @@ import { AuthService, ConfigStateService, EnvironmentService } from '@abp/ng.cor
 import { Router } from '@angular/router';
 import { SignalRService, UserPresence } from '../services/signalr.service';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 
 interface ChecklistItemDto {
   id: string;
@@ -81,7 +82,7 @@ interface MemberDto {
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, NgbDropdownModule],
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
@@ -154,8 +155,21 @@ export class BoardComponent implements OnInit, OnDestroy {
     return currentUser?.id || null;
   }
 
+  get currentUserEmail(): string {
+    const currentUser = this.configState.getOne('currentUser');
+    return currentUser?.email || '';
+  }
+
   get onlineUsers(): typeof this.signalR['onlineUsers'] {
     return this.signalR.onlineUsers;
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/']);
+      }
+    });
   }
 
   ngOnInit(): void {

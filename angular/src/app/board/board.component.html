@@ -38,12 +38,35 @@
     <div class="board-header">
       <h1 class="board-title">{{ board()!.name }}</h1>
       <div class="board-info">
-        <span class="text-muted">Welcome, {{ currentUserName }}</span>
         @if (board()!.isOwner) {
-          <button class="btn btn-outline-secondary btn-sm ms-3" (click)="openSettingsModal()">
+          <button class="btn btn-outline-secondary btn-sm" (click)="openSettingsModal()">
             <i class="fa fa-cog me-1"></i> Settings
           </button>
         }
+      </div>
+      <!-- User Dropdown Menu -->
+      <div class="user-dropdown" ngbDropdown>
+        <button class="btn btn-link user-dropdown-toggle" ngbDropdownToggle id="userDropdownToggle">
+          <span class="user-avatar">{{ getInitials(currentUserName) }}</span>
+          <span class="user-name">{{ currentUserName }}</span>
+          <i class="fa fa-chevron-down ms-2"></i>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end" ngbDropdownMenu aria-labelledby="userDropdownToggle">
+          <div class="dropdown-item-text dropdown-user-info">
+            <span class="dropdown-user-avatar">{{ getInitials(currentUserName) }}</span>
+            <div class="dropdown-user-details">
+              <span class="dropdown-user-name">{{ currentUserName }}</span>
+              <span class="dropdown-user-email">{{ currentUserEmail }}</span>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="/account/profile">
+            <i class="fa fa-user me-2"></i> My Profile
+          </a>
+          <button class="dropdown-item" (click)="logout()">
+            <i class="fa fa-sign-out me-2"></i> Logout
+          </button>
+        </div>
       </div>
       <!-- Online Members Section -->
       <div class="online-members-section">
