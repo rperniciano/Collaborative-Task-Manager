@@ -579,3 +579,83 @@ The only missing piece is the AppTasks table in the database, which will be crea
 - Feature #20 and other task-related features are now unblocked
 - Many features depended on #19 (task creation) being complete
 
+
+## Testing Session - 2026-01-19 04:26
+
+### Regression Test: Feature #1 - App loads without errors
+- Status: **PASSED** (still working)
+- All 4 verification steps passed:
+  1. ✅ Navigate to http://localhost:4200 - success
+  2. ✅ Console errors check - none found (only localization warnings)
+  3. ✅ Page renders content - Welcome page with sidebar, navigation, login button
+  4. ✅ Network requests - all 4 API calls returned 200 OK
+- Screenshot saved: .playwright-mcp/regression-feature-1-verified.png
+
+[Testing] Feature #1 verified - still passing
+
+## Session 10 - 2026-01-19 (Feature #20 - COMPLETED)
+
+### Status
+- Features: 8/124 passing (6.5%)
+- Current feature: #20 "User can view task details" - COMPLETED
+
+### Accomplished This Session
+
+1. **Implemented Feature #20: User can view task details**
+   - Added click handler to task cards to open detail modal
+   - Implemented task detail modal with all required fields:
+     - Title (prominently displayed)
+     - Status (column name with colored badge)
+     - Priority (with color-coded badge: Low/Medium/High)
+     - Description (with placeholder for empty)
+     - Due Date (with placeholder for empty)
+     - Assignee (with placeholder for unassigned)
+     - Created timestamp
+     - Last Modified timestamp (if available)
+   - Added modal styling with:
+     - Semi-transparent backdrop
+     - Smooth slide-in animation
+     - Rounded corners and shadows
+     - Responsive design
+   - Close functionality:
+     - X button in header
+     - Close button in footer
+     - Clicking backdrop closes modal
+
+2. **Verification Steps Completed**
+   - ✅ Step 1: Log in and navigate to board - Registered feature20_test user
+   - ✅ Step 2: Create a task if none exists - Created "TEST_FEATURE_20_TASK_MODAL"
+   - ✅ Step 3: Click on the task card - Modal opened
+   - ✅ Step 4: Verify task modal/panel opens - Modal displayed correctly
+   - ✅ Step 5: Verify task title is displayed - Title shows correctly
+   - ✅ Step 6: Verify all task fields are visible - All 7 fields visible
+
+### Screenshots
+- .playwright-mcp/feature-20-task-modal-open.png - Task modal showing all fields
+- .playwright-mcp/feature-20-board-with-task.png - Board with task card visible
+
+### Git Commit
+- Commit: "feat: Implement task detail modal (Feature #20)"
+- Files modified:
+  - angular/src/app/board/board.component.ts - Added modal state and methods
+  - angular/src/app/board/board.component.html - Added modal template and click handler
+  - angular/src/app/board/board.component.scss - Added modal styles
+
+### Technical Details
+- Modal uses Angular signals for state management (selectedTask, showTaskModal)
+- Task fields displayed: title, status, priority, description, due date, assignee, created, lastModified
+- Modal closes on:
+  - Close button click
+  - X button click
+  - Backdrop click (outside modal content)
+
+### Next Steps (Unblocked by Feature #20)
+- Feature #21: User can edit task title
+- Feature #22: User can delete a task
+- Feature #23: User can set task description
+- Feature #24: User can set task due date
+- Feature #25: User can set task priority
+- Feature #26: User can assign task to member
+- Feature #27: User can add tags to task
+- Feature #29: User can add checklist item
+- And many more task-related features...
