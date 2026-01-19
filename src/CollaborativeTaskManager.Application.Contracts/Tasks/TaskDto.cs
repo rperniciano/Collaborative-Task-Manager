@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace CollaborativeTaskManager.Application.Contracts.Tasks;
 
@@ -18,4 +19,5 @@ public class TaskDto
     public int Order { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
+    public List<ChecklistItemDto> ChecklistItems { get; set; } = new();
 }

@@ -7,6 +7,14 @@ import { Router } from '@angular/router';
 import { SignalRService, UserPresence } from '../services/signalr.service';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
+interface ChecklistItemDto {
+  id: string;
+  taskId: string;
+  text: string;
+  isCompleted: boolean;
+  order: number;
+}
+
 interface TaskDto {
   id: string;
   columnId: string;
@@ -19,6 +27,7 @@ interface TaskDto {
   order: number;
   creationTime: string;
   lastModificationTime: string | null;
+  checklistItems: ChecklistItemDto[];
 }
 
 interface ColumnDto {
@@ -125,6 +134,10 @@ export class BoardComponent implements OnInit, OnDestroy {
   renamingBoard = signal(false);
   renameError = signal<string | null>(null);
   renameSuccess = signal<string | null>(null);
+
+  // Checklist state
+  newChecklistItemText = signal('');
+  addingChecklistItem = signal(false);
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated;
@@ -669,5 +682,104 @@ export class BoardComponent implements OnInit, OnDestroy {
     }
 
     this.columnsWithTasks.set(updatedColumns);
+  }
+
+  // Checklist methods
+  addChecklistItem(): void {
+    const task = this.selectedTask();
+    const text = this.newChecklistItemText().trim();
+
+    if (!task || !text) {
+      return;
+    }
+
+    this.addingChecklistItem.set(true);
+
+    this.http.post<ChecklistItemDto>(
+      `${this.apiUrl}/api/app/task/${task.id}/checklist-items`,
+      { text }
+    ).subscribe({
+      next: (newItem) => {
+        // Update the selected task with the new checklist item
+        const updatedTask = {
+          ...task,
+          checklistItems: [...(task.checklistItems || []), newItem]
+        };
+        this.selectedTask.set(updatedTask);
+
+        // Also update the task in the columns
+        this.updateTaskInColumn(updatedTask);
+
+        // Reset form
+        this.newChecklistItemText.set('');
+        this.addingChecklistItem.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to add checklist item:', err);
+        this.addingChecklistItem.set(false);
+        alert('Failed to add checklist item. Please try again.');
+      }
+    });
+  }
+
+  toggleChecklistItem(item: ChecklistItemDto): void {
+    const task = this.selectedTask();
+    if (!task) {
+      return;
+    }
+
+    this.http.put<ChecklistItemDto>(
+      `${this.apiUrl}/api/app/task/${task.id}/checklist-items/${item.id}`,
+      { isCompleted: !item.isCompleted }
+    ).subscribe({
+      next: (updatedItem) => {
+        // Update the selected task with the updated checklist item
+        const updatedChecklistItems = task.checklistItems.map(ci =>
+          ci.id === updatedItem.id ? updatedItem : ci
+        );
+        const updatedTask = { ...task, checklistItems: updatedChecklistItems };
+        this.selectedTask.set(updatedTask);
+
+        // Also update the task in the columns
+        this.updateTaskInColumn(updatedTask);
+      },
+      error: (err) => {
+        console.error('Failed to toggle checklist item:', err);
+        alert('Failed to update checklist item. Please try again.');
+      }
+    });
+  }
+
+  deleteChecklistItem(item: ChecklistItemDto): void {
+    const task = this.selectedTask();
+    if (!task) {
+      return;
+    }
+
+    this.http.delete(
+      `${this.apiUrl}/api/app/task/${task.id}/checklist-items/${item.id}`
+    ).subscribe({
+      next: () => {
+        // Update the selected task with the removed checklist item
+        const updatedChecklistItems = task.checklistItems.filter(ci => ci.id !== item.id);
+        const updatedTask = { ...task, checklistItems: updatedChecklistItems };
+        this.selectedTask.set(updatedTask);
+
+        // Also update the task in the columns
+        this.updateTaskInColumn(updatedTask);
+      },
+      error: (err) => {
+        console.error('Failed to delete checklist item:', err);
+        alert('Failed to delete checklist item. Please try again.');
+      }
+    });
+  }
+
+  getCompletedChecklistCount(task: TaskDto): number {
+    return (task.checklistItems || []).filter(item => item.isCompleted).length;
+  }
+
+  getTotalChecklistCount(task: TaskDto): number {
+    return (task.checklistItems || []).length;
   }
 }

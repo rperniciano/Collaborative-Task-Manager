@@ -401,6 +401,119 @@
   color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white
 }
 
+// Checklist Section Styles
+.checklist-section {
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.checklist-progress {
+  font-weight: normal;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.checklist-items {
+  margin-bottom: 0.75rem;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #ffffff;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &.completed {
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+
+  &:hover {
+    background-color: #f3f4f6;
+
+    &.completed {
+      background-color: #dcfce7;
+    }
+  }
+
+  .form-check-input {
+    margin: 0;
+    cursor: pointer;
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+
+    &:checked {
+      background-color: #10b981;
+      border-color: #10b981;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+      border-color: #10b981;
+    }
+  }
+
+  .checklist-item-text {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #111827;
+    word-break: break-word;
+
+    &.text-decoration-line-through {
+      color: #6b7280;
+    }
+  }
+
+  .checklist-delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: #fee2e2;
+      border-color: #fca5a5;
+    }
+  }
+
+  &:hover .checklist-delete-btn {
+    opacity: 1;
+  }
+}
+
+.add-checklist-form {
+  .input-group {
+    input {
+      font-size: 0.875rem;
+      border-radius: 6px 0 0 6px;
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        z-index: 1;
+      }
+    }
+
+    button {
+      border-radius: 0 6px 6px 0;
+      padding: 0.25rem 0.75rem;
+    }
+  }
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;

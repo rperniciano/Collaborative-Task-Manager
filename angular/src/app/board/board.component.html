@@ -202,6 +202,71 @@
             </div>
           </div>
 
+          <!-- Checklist Section -->
+          <div class="field-group checklist-section">
+            <label class="field-label">
+              <i class="fa fa-check-square me-2"></i>Checklist
+              @if (getTotalChecklistCount(selectedTask()!) > 0) {
+                <span class="checklist-progress">
+                  ({{ getCompletedChecklistCount(selectedTask()!) }}/{{ getTotalChecklistCount(selectedTask()!) }})
+                </span>
+              }
+            </label>
+
+            <!-- Checklist Items -->
+            <div class="checklist-items">
+              @if (selectedTask()!.checklistItems && selectedTask()!.checklistItems.length > 0) {
+                @for (item of selectedTask()!.checklistItems; track item.id) {
+                  <div class="checklist-item" [class.completed]="item.isCompleted">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [checked]="item.isCompleted"
+                      (change)="toggleChecklistItem(item)"
+                    />
+                    <span class="checklist-item-text" [class.text-decoration-line-through]="item.isCompleted">
+                      {{ item.text }}
+                    </span>
+                    <button
+                      class="btn btn-sm btn-outline-danger checklist-delete-btn"
+                      (click)="deleteChecklistItem(item)"
+                      title="Delete item"
+                    >
+                      <i class="fa fa-times"></i>
+                    </button>
+                  </div>
+                }
+              } @else {
+                <p class="no-value mb-2">No checklist items yet</p>
+              }
+            </div>
+
+            <!-- Add Checklist Item Form -->
+            <div class="add-checklist-form">
+              <div class="input-group input-group-sm">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Add a checklist item..."
+                  [(ngModel)]="newChecklistItemText"
+                  (keyup.enter)="addChecklistItem()"
+                  [disabled]="addingChecklistItem()"
+                />
+                <button
+                  class="btn btn-primary"
+                  (click)="addChecklistItem()"
+                  [disabled]="addingChecklistItem() || !newChecklistItemText().trim()"
+                >
+                  @if (addingChecklistItem()) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <i class="fa fa-plus"></i>
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Task Timestamps -->
           <div class="field-group">
             <label class="field-label">Created</label>

@@ -23,6 +23,7 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
     private readonly IRepository<Board, Guid> _boardRepository;
     private readonly IRepository<BoardMember, Guid> _memberRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
+    private readonly IRepository<ChecklistItem, Guid> _checklistItemRepository;
     private readonly IRealTimeNotificationService _realTimeNotificationService;
 
     public TaskAppService(
@@ -31,6 +32,7 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
         IRepository<Board, Guid> boardRepository,
         IRepository<BoardMember, Guid> memberRepository,
         IRepository<IdentityUser, Guid> userRepository,
+        IRepository<ChecklistItem, Guid> checklistItemRepository,
         IRealTimeNotificationService realTimeNotificationService)
     {
         _taskRepository = taskRepository;
@@ -38,6 +40,7 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
         _boardRepository = boardRepository;
         _memberRepository = memberRepository;
         _userRepository = userRepository;
+        _checklistItemRepository = checklistItemRepository;
         _realTimeNotificationService = realTimeNotificationService;
     }
 
@@ -195,6 +198,20 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
             assigneeName = user?.Name ?? user?.UserName;
         }
 
+        // Get checklist items for this task
+        var checklistItems = await _checklistItemRepository.GetListAsync(c => c.TaskId == task.Id);
+        var checklistItemDtos = checklistItems
+            .OrderBy(c => c.Order)
+            .Select(c => new ChecklistItemDto
+            {
+                Id = c.Id,
+                TaskId = c.TaskId,
+                Text = c.Text,
+                IsCompleted = c.IsCompleted,
+                Order = c.Order
+            })
+            .ToList();
+
         return new TaskDto
         {
             Id = task.Id,
@@ -207,7 +224,142 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
             AssigneeName = assigneeName,
             Order = task.Order,
             CreationTime = task.CreationTime,
-            LastModificationTime = task.LastModificationTime
+            LastModificationTime = task.LastModificationTime,
+            ChecklistItems = checklistItemDtos
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<ChecklistItemDto> AddChecklistItemAsync(Guid taskId, CreateChecklistItemDto input)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var task = await _taskRepository.GetAsync(taskId);
+
+        // Verify access
+        var column = await _columnRepository.GetAsync(task.ColumnId);
+        var board = await _boardRepository.GetAsync(column.BoardId);
+
+        if (!await HasBoardAccessAsync(board.Id, currentUserId))
+        {
+            throw new BusinessException("You do not have access to this task.");
+        }
+
+        // Get the next order number
+        var existingItems = await _checklistItemRepository.GetListAsync(c => c.TaskId == taskId);
+        var maxOrder = existingItems.Any() ? existingItems.Max(c => c.Order) : -1;
+
+        var checklistItem = new ChecklistItem(
+            GuidGenerator.Create(),
+            taskId,
+            input.Text,
+            maxOrder + 1
+        );
+
+        await _checklistItemRepository.InsertAsync(checklistItem);
+
+        return new ChecklistItemDto
+        {
+            Id = checklistItem.Id,
+            TaskId = checklistItem.TaskId,
+            Text = checklistItem.Text,
+            IsCompleted = checklistItem.IsCompleted,
+            Order = checklistItem.Order
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<ChecklistItemDto> UpdateChecklistItemAsync(Guid taskId, Guid itemId, UpdateChecklistItemDto input)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var task = await _taskRepository.GetAsync(taskId);
+
+        // Verify access
+        var column = await _columnRepository.GetAsync(task.ColumnId);
+        var board = await _boardRepository.GetAsync(column.BoardId);
+
+        if (!await HasBoardAccessAsync(board.Id, currentUserId))
+        {
+            throw new BusinessException("You do not have access to this task.");
+        }
+
+        var checklistItem = await _checklistItemRepository.GetAsync(itemId);
+        if (checklistItem.TaskId != taskId)
+        {
+            throw new BusinessException("Checklist item does not belong to this task.");
+        }
+
+        if (input.Text != null)
+        {
+            checklistItem.Text = input.Text;
+        }
+
+        if (input.IsCompleted.HasValue)
+        {
+            checklistItem.IsCompleted = input.IsCompleted.Value;
+        }
+
+        await _checklistItemRepository.UpdateAsync(checklistItem);
+
+        return new ChecklistItemDto
+        {
+            Id = checklistItem.Id,
+            TaskId = checklistItem.TaskId,
+            Text = checklistItem.Text,
+            IsCompleted = checklistItem.IsCompleted,
+            Order = checklistItem.Order
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteChecklistItemAsync(Guid taskId, Guid itemId)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var task = await _taskRepository.GetAsync(taskId);
+
+        // Verify access
+        var column = await _columnRepository.GetAsync(task.ColumnId);
+        var board = await _boardRepository.GetAsync(column.BoardId);
+
+        if (!await HasBoardAccessAsync(board.Id, currentUserId))
+        {
+            throw new BusinessException("You do not have access to this task.");
+        }
+
+        var checklistItem = await _checklistItemRepository.GetAsync(itemId);
+        if (checklistItem.TaskId != taskId)
+        {
+            throw new BusinessException("Checklist item does not belong to this task.");
+        }
+
+        await _checklistItemRepository.DeleteAsync(itemId);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<ChecklistItemDto>> GetChecklistItemsAsync(Guid taskId)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var task = await _taskRepository.GetAsync(taskId);
+
+        // Verify access
+        var column = await _columnRepository.GetAsync(task.ColumnId);
+        var board = await _boardRepository.GetAsync(column.BoardId);
+
+        if (!await HasBoardAccessAsync(board.Id, currentUserId))
+        {
+            throw new BusinessException("You do not have access to this task.");
+        }
+
+        var checklistItems = await _checklistItemRepository.GetListAsync(c => c.TaskId == taskId);
+        return checklistItems
+            .OrderBy(c => c.Order)
+            .Select(c => new ChecklistItemDto
+            {
+                Id = c.Id,
+                TaskId = c.TaskId,
+                Text = c.Text,
+                IsCompleted = c.IsCompleted,
+                Order = c.Order
+            })
+            .ToList();
     }
 }

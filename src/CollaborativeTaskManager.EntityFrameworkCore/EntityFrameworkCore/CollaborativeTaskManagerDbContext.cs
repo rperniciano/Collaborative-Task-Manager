@@ -34,6 +34,7 @@ public class CollaborativeTaskManagerDbContext :
     public DbSet<BoardTask> BoardTasks { get; set; }
     public DbSet<BoardMember> BoardMembers { get; set; }
     public DbSet<BoardInvite> BoardInvites { get; set; }
+    public DbSet<ChecklistItem> ChecklistItems { get; set; }
 
     #region Entities from the modules
 
@@ -134,6 +135,15 @@ public class CollaborativeTaskManagerDbContext :
             b.HasIndex(x => x.BoardId);
             b.HasIndex(x => x.Token).IsUnique();
             b.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChecklistItem>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "ChecklistItems", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Text).IsRequired().HasMaxLength(500);
+            b.HasIndex(x => x.TaskId);
+            b.HasOne<BoardTask>().WithMany().HasForeignKey(x => x.TaskId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
