@@ -337,7 +337,7 @@ export class BoardComponent implements OnInit {
     this.inviteError.set(null);
     this.inviteSuccess.set(null);
 
-    this.http.post<InviteDto>(`${this.apiUrl}/api/app/board/invites`, { email }).subscribe({
+    this.http.post<InviteDto>(`${this.apiUrl}/api/app/board/invite`, { email }).subscribe({
       next: (invite) => {
         this.inviteSuccess.set(`Invitation sent to ${email}. Check the server console for the invite link.`);
         this.inviteEmail.set('');
@@ -356,7 +356,7 @@ export class BoardComponent implements OnInit {
 
   cancelInvite(inviteId: string): void {
     this.cancellingInvite.set(inviteId);
-    this.http.delete(`${this.apiUrl}/api/app/board/invites/${inviteId}`).subscribe({
+    this.http.delete(`${this.apiUrl}/api/app/board/${inviteId}/invite`).subscribe({
       next: () => {
         this.cancellingInvite.set(null);
         this.loadInvites();
@@ -390,7 +390,7 @@ export class BoardComponent implements OnInit {
     }
 
     this.removingMember.set(userId);
-    this.http.delete(`${this.apiUrl}/api/app/board/members/${userId}`).subscribe({
+    this.http.delete(`${this.apiUrl}/api/app/board/member/${userId}`).subscribe({
       next: () => {
         this.removingMember.set(null);
         this.loadMembers();
