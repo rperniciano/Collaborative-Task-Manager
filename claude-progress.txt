@@ -1727,3 +1727,19 @@ The fix is in place and committed. Next session should:
   - Feature #43 (Invite link login flow)
   - Features requiring task/board operations
 - Can continue with login/auth-related features that don't need board API
+
+## Session - 2026-01-19 (Feature #74)
+
+### Status
+- Features: 35/124 passing (28.2%)
+- Completed feature: #74
+
+### Feature #74: Registration with existing email shows error ✅ PASSED
+- Step 1: Used existing user owner_feature43@test.com
+- Step 2: Tried to register with same email but different username (duplicate_email_test)
+- Step 3: Error displayed: "L'email 'owner_feature43@test.com' è già stata accettata."
+- Step 4: Original account still works - logged in successfully
+
+### Screenshots
+- .playwright-mcp/feature-74-register-duplicate-email.png
+- .playwright-mcp/feature-74-duplicate-email-error.png
