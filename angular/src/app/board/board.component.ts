@@ -75,6 +75,10 @@ export class BoardComponent implements OnInit {
   newTaskTitle = signal('');
   creatingTask = signal(false);
 
+  // Task detail modal state
+  selectedTask = signal<TaskDto | null>(null);
+  showTaskModal = signal(false);
+
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated;
   }
@@ -206,5 +210,29 @@ export class BoardComponent implements OnInit {
       case 2: return 'priority-high';
       default: return 'priority-medium';
     }
+  }
+
+  // Task detail modal methods
+  openTaskModal(task: TaskDto): void {
+    this.selectedTask.set(task);
+    this.showTaskModal.set(true);
+  }
+
+  closeTaskModal(): void {
+    this.showTaskModal.set(false);
+    this.selectedTask.set(null);
+  }
+
+  onModalBackdropClick(event: MouseEvent): void {
+    // Close modal when clicking on the backdrop (not the modal content)
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.closeTaskModal();
+    }
+  }
+
+  getColumnNameForTask(task: TaskDto): string {
+    const columns = this.columnsWithTasks();
+    const column = columns.find(c => c.id === task.columnId);
+    return column?.name || 'Unknown';
   }
 }

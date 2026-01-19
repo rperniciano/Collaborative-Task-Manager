@@ -37,7 +37,7 @@
             <!-- Tasks List -->
             @if (column.tasks && column.tasks.length > 0) {
               @for (task of column.tasks; track task.id) {
-                <div class="task-card">
+                <div class="task-card" (click)="openTaskModal(task)">
                   <div class="task-title">{{ task.title }}</div>
                   @if (task.description) {
                     <div class="task-description">{{ task.description }}</div>
@@ -117,6 +117,107 @@
           </div>
         </div>
       }
+    </div>
+  }
+
+  <!-- Task Detail Modal -->
+  @if (showTaskModal() && selectedTask()) {
+    <div class="modal-backdrop" (click)="onModalBackdropClick($event)">
+      <div class="task-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Task Details</h3>
+          <button class="close-btn" (click)="closeTaskModal()" aria-label="Close modal">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Task Title -->
+          <div class="field-group">
+            <label class="field-label">Title</label>
+            <div class="field-value task-title-display">{{ selectedTask()!.title }}</div>
+          </div>
+
+          <!-- Task Status/Column -->
+          <div class="field-group">
+            <label class="field-label">Status</label>
+            <div class="field-value">
+              <span class="status-badge">{{ getColumnNameForTask(selectedTask()!) }}</span>
+            </div>
+          </div>
+
+          <!-- Task Priority -->
+          <div class="field-group">
+            <label class="field-label">Priority</label>
+            <div class="field-value">
+              <span class="priority-badge" [class]="getPriorityClass(selectedTask()!.priority)">
+                {{ getPriorityLabel(selectedTask()!.priority) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Task Description -->
+          <div class="field-group">
+            <label class="field-label">Description</label>
+            <div class="field-value description-value">
+              @if (selectedTask()!.description) {
+                {{ selectedTask()!.description }}
+              } @else {
+                <span class="no-value">No description</span>
+              }
+            </div>
+          </div>
+
+          <!-- Task Due Date -->
+          <div class="field-group">
+            <label class="field-label">Due Date</label>
+            <div class="field-value">
+              @if (selectedTask()!.dueDate) {
+                <span class="due-date-value">
+                  <i class="fa fa-calendar me-2"></i>
+                  {{ selectedTask()!.dueDate | date:'fullDate' }}
+                </span>
+              } @else {
+                <span class="no-value">No due date set</span>
+              }
+            </div>
+          </div>
+
+          <!-- Task Assignee -->
+          <div class="field-group">
+            <label class="field-label">Assignee</label>
+            <div class="field-value">
+              @if (selectedTask()!.assigneeName) {
+                <span class="assignee-value">
+                  <i class="fa fa-user me-2"></i>
+                  {{ selectedTask()!.assigneeName }}
+                </span>
+              } @else {
+                <span class="no-value">Unassigned</span>
+              }
+            </div>
+          </div>
+
+          <!-- Task Timestamps -->
+          <div class="field-group">
+            <label class="field-label">Created</label>
+            <div class="field-value timestamp-value">
+              {{ selectedTask()!.creationTime | date:'medium' }}
+            </div>
+          </div>
+
+          @if (selectedTask()!.lastModificationTime) {
+            <div class="field-group">
+              <label class="field-label">Last Modified</label>
+              <div class="field-value timestamp-value">
+                {{ selectedTask()!.lastModificationTime | date:'medium' }}
+              </div>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeTaskModal()">Close</button>
+        </div>
+      </div>
     </div>
   }
 </div>
