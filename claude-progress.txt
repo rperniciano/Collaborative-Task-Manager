@@ -2137,3 +2137,94 @@ Feature continues to work correctly. No code changes needed.
 - Feature #91: Success toast on task delete (depends on #22) - now unblocked
 - Feature #93: Confirmation dialog for destructive actions (depends on #22) - now unblocked
 - Feature #111: Double click delete only deletes once (depends on #22) - now unblocked
+
+## Testing Session - 2026-01-19 (Feature #52 Regression Test)
+
+### Status
+- Features: 38/124 passing (30.6%)
+- Regression test: Feature #52 "Invalid/expired tokens rejected" - STILL PASSING ✅
+
+### Verification Results
+All verification steps passed:
+
+| Test | Token Type | Expected | Actual | Status |
+|------|-----------|----------|--------|--------|
+| 1 | Valid Token | 200 | 200 | ✅ Control |
+| 2 | Corrupted Signature | 401 | 401 | ✅ |
+| 3 | Invalid Format | 401 | 401 | ✅ |
+| 4 | Empty Token | 401 | 401 | ✅ |
+| 5 | Truncated (No Signature) | 401 | 401 | ✅ |
+| 6 | Tampered Payload | 401 | 401 | ✅ |
+| 7 | None Algorithm Attack | 401 | 401 | ✅ |
+
+### Technical Notes
+- Registered new test user: token_test_user / token_test@test.com
+- Obtained valid JWT token (RS256 signed via OpenIddict)
+- All corrupted/invalid tokens properly rejected with HTTP 401
+- None algorithm attack properly blocked
+
+### Screenshot
+- .playwright-mcp/feature-52-regression-verified.png
+
+[Testing] Feature #52 verified - still passing
+
+## Session - 2026-01-19 (Feature #38 - Owner can rename board)
+
+### Status
+- Features: 39/124 passing (31.5%)
+- Completed feature: #38
+
+### Feature #38 Details
+- **Name**: Owner can rename board
+- **Category**: functional
+- **Description**: Board owner can change the board name
+- **Dependencies**: Feature #7 (Board view displays after login) - PASSING
+
+### Implementation Summary
+
+1. **Frontend Changes (board.component.ts)**
+   - Added board rename state signals: editBoardName, renamingBoard, renameError, renameSuccess
+   - Updated openSettingsModal() to initialize editBoardName from current board name
+   - Updated closeSettingsModal() to clear rename state
+   - Implemented renameBoard() method with:
+     - Empty name validation
+     - Same name detection (shows info message)
+     - HTTP PUT request to /api/app/board/board
+     - Local state update on success
+     - Error handling with user-friendly messages
+
+2. **Frontend Changes (board.component.html)**
+   - Added "Board Name" section at top of Settings modal
+   - Input field with current board name pre-populated
+   - Save button with loading spinner during rename
+   - Success/error alert messages
+
+### Verification Results - ALL STEPS PASSED ✅
+
+1. ✅ Step 1: Log in as board owner - Registered new user feature38_owner
+2. ✅ Step 2: Navigate to board settings - Clicked Settings button, modal opened
+3. ✅ Step 3: Edit board name field - Changed "My Board" to "TEST_RENAME_BOARD_F38"
+4. ✅ Step 4: Save changes - Clicked Save button, success message appeared
+5. ✅ Step 5: Verify new name shows in header - Board heading changed immediately
+6. ✅ Step 6: Refresh and verify persistence - Page refreshed, new name still displayed
+
+### Screenshots
+- .playwright-mcp/feature-38-settings-modal-before-rename.png
+- .playwright-mcp/feature-38-rename-success.png
+- .playwright-mcp/feature-38-board-renamed.png
+- .playwright-mcp/feature-38-after-refresh.png
+
+### Technical Notes
+- Backend UpdateBoardAsync already existed in BoardAppService
+- Only board owners can rename (enforced by backend: "Only the board owner can rename the board.")
+- Settings button only visible to owners (board.isOwner check in HTML)
+- No console errors during testing
+
+### Git Commit
+- "feat: Implement board rename functionality (Feature #38)"
+
+### Features Unblocked
+Feature #38 was blocking:
+- Feature #46: Owner can delete board
+- Feature #68: Board name change persists
+
