@@ -380,8 +380,8 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
                         [Text] nvarchar(500) NOT NULL,
                         [IsCompleted] bit NOT NULL,
                         [Order] int NOT NULL,
-                        [ExtraProperties] nvarchar(max) NOT NULL,
-                        [ConcurrencyStamp] nvarchar(40) NOT NULL,
+                        [ExtraProperties] nvarchar(max) NOT NULL DEFAULT '{}',
+                        [ConcurrencyStamp] nvarchar(40) NOT NULL DEFAULT '',
                         [CreationTime] datetime2 NOT NULL,
                         [CreatorId] uniqueidentifier NULL,
                         [LastModificationTime] datetime2 NULL,
@@ -400,7 +400,28 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
             }
             else
             {
-                System.Console.WriteLine("[ChecklistItems] Table already exists, no action needed.");
+                // Ensure default constraints exist on ExtraProperties and ConcurrencyStamp
+                System.Console.WriteLine("[ChecklistItems] Table exists, ensuring default constraints...");
+                try
+                {
+                    // Add default constraint for ExtraProperties if not exists
+                    var addDefaultsSql = @"
+                        IF NOT EXISTS (SELECT 1 FROM sys.default_constraints WHERE name = 'DF_AppChecklistItems_ExtraProperties')
+                        BEGIN
+                            ALTER TABLE [AppChecklistItems] ADD CONSTRAINT [DF_AppChecklistItems_ExtraProperties] DEFAULT '{}' FOR [ExtraProperties];
+                        END
+                        IF NOT EXISTS (SELECT 1 FROM sys.default_constraints WHERE name = 'DF_AppChecklistItems_ConcurrencyStamp')
+                        BEGIN
+                            ALTER TABLE [AppChecklistItems] ADD CONSTRAINT [DF_AppChecklistItems_ConcurrencyStamp] DEFAULT '' FOR [ConcurrencyStamp];
+                        END
+                    ";
+                    await dbContext.Database.ExecuteSqlRawAsync(addDefaultsSql);
+                    System.Console.WriteLine("[ChecklistItems] Default constraints ensured.");
+                }
+                catch (Exception constraintEx)
+                {
+                    System.Console.WriteLine($"[ChecklistItems] Warning: Could not add default constraints: {constraintEx.Message}");
+                }
             }
         }
         catch (Exception ex)

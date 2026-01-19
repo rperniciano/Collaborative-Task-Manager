@@ -3156,3 +3156,86 @@ The database table `AppChecklistItems` has `ExtraProperties` and `ConcurrencySta
 
 Feature is being skipped again due to the same persistent infrastructure blocker.
 All code is correct and committed. Feature will work immediately after server restart.
+
+## Testing Session - 2026-01-19 (Feature #4 Regression Test)
+
+### Feature #4: User can register with valid credentials
+
+**Status**: STILL PASSING ✅
+
+### Verification Results:
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Navigate to register page | ✅ | Accessed via login page "Registrati" link |
+| 2. Enter unique email | ✅ | testuser_1737320850@example.com |
+| 3. Enter valid password | ✅ | Test123!@# meets ABP requirements |
+| 4. Submit registration form | ✅ | Clicked "Registrati" button |
+| 5. Verify success/redirect | ✅ | Redirected to /board with welcome message |
+| 6. Verify user can log in | ✅ | Logged out and logged back in successfully |
+
+### Notes:
+- Registration form is served from ABP backend at https://localhost:44396/Account/Register
+- User automatically logged in after registration and redirected to board
+- Board auto-created for new user as expected
+- SignalR WebSocket connection established successfully
+- No console errors detected
+
+### Screenshots:
+- .playwright-mcp/feature-4-registration-verified.png - Board after successful login
+
+[Testing] Feature #4 verified - still passing
+
+## Session - 2026-01-19 (Feature #29 - Seventh Attempt)
+
+### Status
+- Features: 39/124 passing (31.5%)
+- Current feature: #29 "User can add checklist item" - BLOCKED BY INFRASTRUCTURE (SKIPPED AGAIN)
+
+### Session Summary
+
+This is the **SEVENTH** attempt at Feature #29. Findings:
+
+#### 1. Swagger Shows Checklist Endpoints Available ✅
+- GET /api/app/task/{taskId}/checklist-items - Returns empty array
+- POST /api/app/task/{taskId}/checklist-items - Returns HTTP 500
+- PUT /api/app/task/{taskId}/checklist-items/{itemId}
+- DELETE /api/app/task/{taskId}/checklist-items/{itemId}
+
+#### 2. Root Cause - Still OLD Code Running
+The server (process 37060 or 21977) is still running code with:
+```csharp
+public class ChecklistItem : FullAuditedEntity<Guid>  // WRONG - missing ExtraProperties
+```
+
+The correct fix (already in source code):
+```csharp
+public class ChecklistItem : FullAuditedAggregateRoot<Guid>  // CORRECT - has ExtraProperties
+```
+
+#### 3. Additional Fix Applied This Session
+Modified EnsureChecklistItemsTableExistsAsync in CollaborativeTaskManagerHttpApiHostModule.cs to:
+- Add DEFAULT constraints for ExtraProperties ('{}') and ConcurrencyStamp ('') on table creation
+- Add SQL to ensure default constraints exist when table already exists
+
+This will help prevent NULL violations when the server restarts.
+
+#### 4. Infrastructure Blocker - UNCHANGED
+- Process 37060 locking all DLLs
+- Build completes but cannot copy updated DLLs to bin/Debug folder
+- Cannot kill Windows process from this environment
+
+### Files Modified This Session
+- src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManagerHttpApiHostModule.cs
+  - Added DEFAULT constraints to table creation SQL
+  - Added SQL to ensure defaults exist for existing tables
+
+### Decision: Skip Feature #29 (Seventh Time)
+Feature has been skipped again due to persistent infrastructure blocker.
+Priority moved to 144 (end of queue).
+
+### Manual Steps Required
+1. Kill process 37060 using Windows Task Manager or: `taskkill /F /PID 37060`
+2. Run `./init.sh` to rebuild and start server
+3. Test checklist feature through browser
+4. Mark Feature #29 as passing
