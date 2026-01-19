@@ -4099,3 +4099,69 @@ Manual intervention required:
 - claude-progress.txt - Session notes added
 - .playwright-mcp/feature-42-regression-boardname-missing.png - Screenshot of issue
 
+
+## Session - 2026-01-19 21:33 (Feature #15 - User Can Edit Display Name)
+
+### Status
+- Features: 43/124 passing (34.7%)
+- Current feature: #15 "User can edit display name" - COMPLETED ✅
+
+### Feature #15 Details
+- **Name**: User can edit display name
+- **Category**: profile
+- **Description**: Display name can be changed
+- **Dependencies**: Feature #14 (User can view profile) - PASSING
+
+### Implementation Summary
+
+The feature leverages ABP Framework's built-in account management at `/account/manage`,
+which provides a "Personal Settings" (Impostazioni personali) tab with editable fields.
+
+### Code Changes Made
+
+#### Frontend (Angular)
+**File: angular/src/app/board/board.component.ts**
+- Changed `currentUserName` getter to use `currentUser?.name` instead of `currentUser?.userName`
+- Falls back to userName if display name is not set
+- Display name now appears in:
+  - User menu button in header
+  - "Welcome, [name]" message in board header
+  - Online members list (via SignalR)
+
+#### Backend (C#)
+**File: src/CollaborativeTaskManager.HttpApi.Host/Hubs/BoardHub.cs**
+- Updated `JoinBoard()` method to use `_currentUser.Name` instead of `_currentUser.UserName`
+- Updated `LeaveBoard()` method to use display name
+- Updated `SendTyping()` method to use display name
+- All SignalR presence updates now show display name instead of username
+
+### Verification Results
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Navigate to profile | ✅ | Clicked "Il mio account" from user menu, navigated to /account/manage |
+| 2. Edit display name field | ✅ | Changed "Nome" field to "Feature 15 Test User" |
+| 3. Save changes | ✅ | Clicked "Salva", got success message "Impostazioni personali salvate" |
+| 4. Verify name updated | ✅ | Display name appears in user menu, welcome message, and online members |
+| 5. Verify initials update | ✅ | Member avatar shows "FU" (from "Feature 15 Test User") |
+
+### Additional Tests
+- ✅ Display name persists after page refresh
+- ✅ Initials calculated correctly (first + last letter of multi-word names)
+- ✅ All UI locations updated with display name
+
+### Screenshots
+- .playwright-mcp/feature-15-profile-page-before-edit.png - Profile edit form
+- .playwright-mcp/feature-15-board-with-updated-name.png - Board showing display name
+- .playwright-mcp/feature-15-display-name-everywhere.png - Display name in all UI locations
+- .playwright-mcp/feature-15-settings-modal-initials.png - Settings modal with initials "FU"
+
+### Decision: Feature #15 PASSED ✅
+
+All verification steps completed successfully. The feature works end-to-end:
+1. Users can navigate to profile via ABP's account management
+2. Display name can be edited in the "Nome" (First Name) field
+3. Changes are saved and persist across sessions
+4. Display name appears correctly in all UI locations
+5. Initials are automatically calculated from the display name
+
