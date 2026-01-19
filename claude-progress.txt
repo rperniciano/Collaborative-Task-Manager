@@ -767,3 +767,36 @@ dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
 
 ### Decision
 Skipping Feature #39 due to infrastructure blocker. The feature is fully implemented in code but cannot be tested until the backend server is restarted.
+
+### Additional Features Verified This Session
+
+**Feature #2: Login page renders correctly** - PASSED
+- Verified all 5 steps:
+  1. ✅ Navigate to login page
+  2. ✅ Email/username input field visible
+  3. ✅ Password input field visible
+  4. ✅ Login button visible
+  5. ✅ Link to register page exists
+- Screenshot: .playwright-mcp/feature-2-login-page.png
+
+**Feature #6: User can log out** - PASSED
+- Verified all 5 steps:
+  1. ✅ Log in as user (invite_test_owner)
+  2. ✅ Click user dropdown menu
+  3. ✅ Click logout option (Disconnettiti)
+  4. ✅ Verify redirect to home page
+  5. ✅ Verify session cleared (cannot access protected routes)
+- Console message: "Token successfully revoked"
+- Screenshot: .playwright-mcp/feature-6-logout-redirect.png
+
+**Feature #47: Unauthenticated user cannot access board** - PASSED
+- Verified all 4 steps:
+  1. ✅ Session already cleared from logout test
+  2. ✅ Navigated directly to /board URL
+  3. ✅ Redirected to /Account/Login with returnUrl=/board
+  4. ✅ No board data exposed - only login form visible
+
+### Session Summary
+- Started: Feature #39 (Invite Member) - Fully implemented, blocked by server restart
+- Completed: Features #2, #6, #47
+- Total passing: 11/124 (8.9%)
