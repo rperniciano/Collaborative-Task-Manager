@@ -4,6 +4,7 @@
     "mssql": "^12.2.0"
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
     "sql.js": "^1.13.0"
   }
 }
