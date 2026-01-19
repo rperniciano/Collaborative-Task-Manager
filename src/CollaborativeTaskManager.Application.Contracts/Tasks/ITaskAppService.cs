@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 
 namespace CollaborativeTaskManager.Application.Contracts.Tasks;
@@ -8,6 +9,7 @@ namespace CollaborativeTaskManager.Application.Contracts.Tasks;
 /// <summary>
 /// Application service interface for Task operations.
 /// </summary>
+[RemoteService(IsEnabled = false)]
 public interface ITaskAppService : IApplicationService
 {
     /// <summary>

@@ -24,7 +24,7 @@ public class TaskController : CollaborativeTaskManagerController
     /// <summary>
     /// Gets all tasks for the current user's board.
     /// </summary>
-    [HttpGet("all")]
+    [HttpGet("tasks")]
     public Task<List<TaskDto>> GetAllTasksAsync()
     {
         return _taskAppService.GetAllTasksAsync();

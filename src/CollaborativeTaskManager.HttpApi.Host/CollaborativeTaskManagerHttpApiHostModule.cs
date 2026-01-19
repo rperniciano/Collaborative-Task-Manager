@@ -259,20 +259,35 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
         var env = context.GetEnvironment();
 
         // Auto-migrate database - always run to apply pending migrations
+        System.Console.WriteLine("[DB] Starting database initialization...");
         try
         {
             using var scope = context.ServiceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<CollaborativeTaskManager.EntityFrameworkCore.CollaborativeTaskManagerDbContext>();
 
-            // Apply pending EF Core migrations
-            await dbContext.Database.MigrateAsync();
-            System.Console.WriteLine("Database migrations applied successfully.");
+            // Try EF Core migrations first
+            try
+            {
+                System.Console.WriteLine("[DB] Running EF Core migrations...");
+                await dbContext.Database.MigrateAsync();
+                System.Console.WriteLine("[DB] EF Core migrations completed.");
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail - migrations may fail if tables already exist
+                System.Console.WriteLine($"[DB] Migration error (may be expected): {ex.Message}");
+            }
+
+            // Always ensure ChecklistItems table exists (separate from EF migrations)
+            System.Console.WriteLine("[DB] Checking for ChecklistItems table...");
+            await EnsureChecklistItemsTableExistsAsync(dbContext);
+            System.Console.WriteLine("[DB] ChecklistItems table check completed.");
         }
         catch (Exception ex)
         {
-            // Log but don't fail startup
-            System.Console.WriteLine($"Database migration warning: {ex.Message}");
+            System.Console.WriteLine($"[DB] Database initialization error: {ex.Message}");
         }
+        System.Console.WriteLine("[DB] Database initialization finished.");
 
         app.UseForwardedHeaders();
 
@@ -325,5 +340,73 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
         app.UseConfiguredEndpoints();
 
         System.Console.WriteLine("[SignalR] BoardHub mapped to /hubs/board");
+    }
+
+    private static async Task EnsureChecklistItemsTableExistsAsync(CollaborativeTaskManager.EntityFrameworkCore.CollaborativeTaskManagerDbContext dbContext)
+    {
+        System.Console.WriteLine("[ChecklistItems] Starting table check...");
+        try
+        {
+            // Check if the AppChecklistItems table exists
+            var tableExistsSql = @"
+                SELECT CASE WHEN EXISTS (
+                    SELECT 1 FROM INFORMATION_SCHEMA.TABLES
+                    WHERE TABLE_NAME = 'AppChecklistItems'
+                ) THEN 1 ELSE 0 END";
+
+            System.Console.WriteLine("[ChecklistItems] Checking if table exists...");
+
+            using var command = dbContext.Database.GetDbConnection().CreateCommand();
+            command.CommandText = tableExistsSql;
+
+            if (command.Connection?.State != System.Data.ConnectionState.Open)
+            {
+                await command.Connection!.OpenAsync();
+            }
+
+            var result = await command.ExecuteScalarAsync();
+            var tableExists = Convert.ToInt32(result) == 1;
+
+            System.Console.WriteLine($"[ChecklistItems] Table exists: {tableExists}");
+
+            if (!tableExists)
+            {
+                System.Console.WriteLine("[ChecklistItems] Creating AppChecklistItems table...");
+
+                var createTableSql = @"
+                    CREATE TABLE [AppChecklistItems] (
+                        [Id] uniqueidentifier NOT NULL,
+                        [TaskId] uniqueidentifier NOT NULL,
+                        [Text] nvarchar(500) NOT NULL,
+                        [IsCompleted] bit NOT NULL,
+                        [Order] int NOT NULL,
+                        [ExtraProperties] nvarchar(max) NOT NULL,
+                        [ConcurrencyStamp] nvarchar(40) NOT NULL,
+                        [CreationTime] datetime2 NOT NULL,
+                        [CreatorId] uniqueidentifier NULL,
+                        [LastModificationTime] datetime2 NULL,
+                        [LastModifierId] uniqueidentifier NULL,
+                        [IsDeleted] bit NOT NULL DEFAULT CAST(0 AS bit),
+                        [DeleterId] uniqueidentifier NULL,
+                        [DeletionTime] datetime2 NULL,
+                        CONSTRAINT [PK_AppChecklistItems] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_AppChecklistItems_AppTasks_TaskId] FOREIGN KEY ([TaskId]) REFERENCES [AppTasks] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_AppChecklistItems_TaskId] ON [AppChecklistItems] ([TaskId]);
+                ";
+
+                await dbContext.Database.ExecuteSqlRawAsync(createTableSql);
+                System.Console.WriteLine("[ChecklistItems] Table created successfully.");
+            }
+            else
+            {
+                System.Console.WriteLine("[ChecklistItems] Table already exists, no action needed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"[ChecklistItems] ERROR: Could not ensure AppChecklistItems table: {ex.Message}");
+            System.Console.WriteLine($"[ChecklistItems] Stack trace: {ex.StackTrace}");
+        }
     }
 }

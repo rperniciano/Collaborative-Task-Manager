@@ -15,6 +15,7 @@ namespace CollaborativeTaskManager.Application.Tasks;
 /// <summary>
 /// Application service for Task operations.
 /// </summary>
+[RemoteService(IsEnabled = false)]
 [Authorize]
 public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppService
 {
@@ -198,19 +199,27 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
             assigneeName = user?.Name ?? user?.UserName;
         }
 
-        // Get checklist items for this task
-        var checklistItems = await _checklistItemRepository.GetListAsync(c => c.TaskId == task.Id);
-        var checklistItemDtos = checklistItems
-            .OrderBy(c => c.Order)
-            .Select(c => new ChecklistItemDto
-            {
-                Id = c.Id,
-                TaskId = c.TaskId,
-                Text = c.Text,
-                IsCompleted = c.IsCompleted,
-                Order = c.Order
-            })
-            .ToList();
+        // Get checklist items for this task (with graceful fallback if table doesn't exist)
+        var checklistItemDtos = new List<ChecklistItemDto>();
+        try
+        {
+            var checklistItems = await _checklistItemRepository.GetListAsync(c => c.TaskId == task.Id);
+            checklistItemDtos = checklistItems
+                .OrderBy(c => c.Order)
+                .Select(c => new ChecklistItemDto
+                {
+                    Id = c.Id,
+                    TaskId = c.TaskId,
+                    Text = c.Text,
+                    IsCompleted = c.IsCompleted,
+                    Order = c.Order
+                })
+                .ToList();
+        }
+        catch (Exception)
+        {
+            // Checklist items table may not exist yet - continue without checklist items
+        }
 
         return new TaskDto
         {

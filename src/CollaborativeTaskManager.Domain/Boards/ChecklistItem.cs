@@ -6,7 +6,7 @@ namespace CollaborativeTaskManager.Domain.Boards;
 /// <summary>
 /// Represents a checklist item within a task.
 /// </summary>
-public class ChecklistItem : FullAuditedEntity<Guid>
+public class ChecklistItem : FullAuditedAggregateRoot<Guid>
 {
     /// <summary>
     /// The ID of the task this checklist item belongs to.
