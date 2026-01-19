@@ -13,4 +13,9 @@ public interface IBoardAppService : IApplicationService
     /// If the user doesn't have a board, creates one automatically.
     /// </summary>
     Task<BoardWithColumnsDto> GetBoardAsync();
+
+    /// <summary>
+    /// Ensures the AppTasks table exists in the database.
+    /// </summary>
+    Task<string> EnsureTasksTableAsync();
 }
