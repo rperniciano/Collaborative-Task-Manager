@@ -259,3 +259,89 @@
 - Feature #19: User can create a task (depends on #8)
 - Feature #37: Drag column to reorder (depends on #8)
 - Feature #100: Empty column shows placeholder (depends on #8)
+
+## Testing Session - 2026-01-19 00:48
+
+### Regression Test: Feature #1 - App loads without errors
+- Status: PASSED (still working)
+- All 4 verification steps passed:
+  1. Navigate to http://localhost:4200 - success
+  2. Console errors check - none found (only localization warnings)
+  3. Page renders content - ABP welcome page with sidebar, cards, login button
+  4. Network requests - all 4 API calls returned 200 OK
+- Screenshot saved: .playwright-mcp/.playwright-mcp/regression-feature-1-check.png
+
+[Testing] Feature #1 verified - still passing
+
+## Session 6 - 2026-01-19 (Parallel Agent - Feature #19)
+
+### Status
+- Features: 6/124 passing (4.8%)
+- Current feature: #19 "User can create a task" - BLOCKED (requires server restart)
+
+### Investigation Summary
+
+1. **Tested Feature #19: User can create a task**
+   - Registered new user (feature19_test)
+   - Navigated to board view - columns display correctly
+   - Clicked "+ Add task" button in To-Do column - form appeared
+   - Entered task title: "TEST_FEATURE_19_UNIQUE_TASK"
+   - Clicked "Add" button
+   - Result: 500 Internal Server Error
+
+2. **Root Cause Analysis**
+   - API endpoint `/api/app/task` returns 500 error
+   - API endpoint `/api/app/task/tasks` also returns 500 error
+   - Root cause: The AppTasks database table does not exist
+   - The migration code exists in `CollaborativeTaskManagerHttpApiHostModule.cs` (auto-creates table on startup)
+   - However, this code was uncommitted and the server was started before the change was made
+
+3. **Fix Applied**
+   - Committed the auto-migration code that creates AppTasks table on startup
+   - Commit: "feat: Add auto-migration for AppTasks table on startup"
+   - The fix requires a SERVER RESTART to take effect
+
+### Blocker
+**The backend server needs to be restarted for the database migration to run.**
+
+The commands to restart are blocked in this environment:
+- `dotnet` command not allowed
+- `sqlcmd` command not allowed
+- `powershell` command not allowed
+
+### What Was Implemented (Ready for Testing After Restart)
+1. **TaskAppService.cs** - Full CRUD operations for tasks
+   - CreateAsync - Creates task with title, priority, description, due date
+   - GetAllTasksAsync - Gets all tasks for current user's board
+   - GetTasksByColumnAsync - Gets tasks for specific column
+   - DeleteAsync - Deletes a task
+
+2. **BoardTask.cs** - Domain entity with all required fields
+   - Id, ColumnId, Title, Description, DueDate, Priority, AssigneeId, Order
+
+3. **Angular board.component** - Full UI implementation
+   - "+ Add task" button per column
+   - Inline task creation form
+   - Task display with priority badges
+   - API integration
+
+4. **Auto-migration in HttpApiHostModule**
+   - Creates AppTasks table if it doesn't exist on startup
+
+### Next Steps
+1. **REQUIRED**: Restart the backend server to apply the migration
+   - Run: `dotnet run --project src/CollaborativeTaskManager.HttpApi.Host`
+   - Or run the DbMigrator: `dotnet run --project src/CollaborativeTaskManager.DbMigrator`
+
+2. After restart, verify feature #19:
+   - Create a task via UI
+   - Verify task appears in column
+   - Verify task persists after page refresh
+   - Verify API returns 200
+
+### Files Modified This Session
+- src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManagerHttpApiHostModule.cs (committed)
+
+### Decision
+Since the blocker is infrastructure-related (server restart required) and I cannot restart the server, I will skip this feature to allow other agents to potentially work on it after the server is restarted.
+
