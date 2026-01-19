@@ -1103,6 +1103,15 @@ dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
 - Hub endpoint: /hubs/board
 
 ### Decision
-Feature #9 implementation is complete. Marking as blocked due to infrastructure (server restart required).
-Cannot verify with browser automation until both servers are restarted.
+Feature #9 implementation is complete. Skipped the feature using `feature_skip` tool because:
+1. Both servers need to be restarted (backend + frontend)
+2. Angular needs `npm install`/`yarn install` to install @microsoft/signalr
+3. Cannot verify with browser automation until both servers are restarted
+
+Feature moved from priority 9 to priority 132 (end of queue).
+Once servers are restarted by a future session, the feature can be verified and marked passing.
+
+### Git Commit
+- Commit: "feat: Implement SignalR connection on board load (Feature #9)"
+- Files: BoardHub.cs, signalr.service.ts, board.component.ts, package.json, HttpApiHostModule.cs
 
