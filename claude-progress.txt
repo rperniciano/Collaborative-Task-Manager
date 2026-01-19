@@ -2497,3 +2497,129 @@ Feature #29 cannot be completed due to infrastructure blocker:
 - This is a TRUE external blocker, not a development issue
 
 Skipping to allow other features to be worked on. Feature will return to queue once infrastructure is resolved.
+
+## Testing Session - 2026-01-19 (Feature #74 Regression Test)
+
+### Feature #74: Registration with existing email shows error
+
+**Status**: STILL PASSING ✅
+
+### Verification Steps:
+
+| Step | Expected | Actual | Status |
+|------|----------|--------|--------|
+| 1 | Register a user with email X | Registered regression_test_user_74 with regression_test_74@example.com | ✅ |
+| 2 | Try to register again with same email | Attempted with different_username_74 and same email | ✅ |
+| 3 | Verify error about existing account | Alert displayed: "L'email 'regression_test_74@example.com' è già stata accettata." | ✅ |
+| 4 | Verify original account unaffected | Successfully logged in as regression_test_user_74, board displayed correctly | ✅ |
+
+### Technical Details:
+- First registration: regression_test_user_74 / regression_test_74@example.com / Test1234\!
+- Duplicate attempt: different_username_74 / regression_test_74@example.com / Test1234\!
+- Error message displayed in Italian (locale: it): "L'email 'X' è già stata accettata."
+- Original user login successful, board with SignalR connection established
+- No console errors detected
+
+### Screenshots:
+- .playwright-mcp/feature-74-duplicate-email-error.png - Error message for duplicate email
+- .playwright-mcp/feature-74-original-account-intact.png - Original account login successful
+
+[Testing] Feature #74 verified - still passing
+
+## Session - 2026-01-19 (Feature #29 - Second Attempt)
+
+### Status
+- Features: 39/124 passing (31.5%)
+- Current feature: #29 "User can add checklist item" - STILL BLOCKED
+
+### Feature #29 Details
+- **Name**: User can add checklist item
+- **Category**: functional
+- **Description**: Task checklist items can be added
+- **Steps**:
+  1. Log in as a board owner or member
+  2. Open a task modal
+  3. Find checklist section
+  4. Type a new checklist item text
+  5. Click add button (or press enter)
+  6. Verify item appears in the list
+
+### Summary
+
+This is a second attempt at Feature #29. The previous session fully implemented all the code, but the feature is blocked by infrastructure issues:
+
+1. **Backend process 35760** is still running and locking all DLL files
+2. **Cannot restart backend** - taskkill, cmd, powershell commands are blocked
+3. **New code not loaded** - The TaskController with checklist endpoints exists in source but isn't running
+4. **Migration created** - Added 20260119190000_AddChecklistItem.cs manually this session
+
+### Implementation Status - CODE COMPLETE ✅
+
+All files are in place:
+
+**Backend:**
+- `src/CollaborativeTaskManager.Domain/Boards/ChecklistItem.cs` ✅
+- `src/CollaborativeTaskManager.Application.Contracts/Tasks/ChecklistItemDto.cs` ✅
+- `src/CollaborativeTaskManager.Application.Contracts/Tasks/CreateChecklistItemDto.cs` ✅
+- `src/CollaborativeTaskManager.Application.Contracts/Tasks/UpdateChecklistItemDto.cs` ✅
+- `src/CollaborativeTaskManager.Application.Contracts/Tasks/ITaskAppService.cs` ✅ (with checklist methods)
+- `src/CollaborativeTaskManager.Application/Tasks/TaskAppService.cs` ✅ (with checklist implementations)
+- `src/CollaborativeTaskManager.HttpApi/Controllers/TaskController.cs` ✅ (REST endpoints)
+- `src/CollaborativeTaskManager.EntityFrameworkCore/.../CollaborativeTaskManagerDbContext.cs` ✅ (DbSet configured)
+- `src/CollaborativeTaskManager.EntityFrameworkCore/Migrations/20260119190000_AddChecklistItem.cs` ✅ (NEW - created this session)
+
+**Frontend:**
+- `angular/src/app/board/board.component.ts` ✅ (ChecklistItemDto, addChecklistItem, toggleChecklistItem, deleteChecklistItem methods)
+- `angular/src/app/board/board.component.html` ✅ (checklist section in task modal)
+- `angular/src/app/board/board.component.scss` ✅ (checklist styling)
+
+### Verification Attempted
+
+1. ✅ Logged in as admin
+2. ✅ Opened task modal for "Test Task for Contrast Check"
+3. ✅ Checklist section visible with input and + button
+4. ✅ Typed "TEST_CHECKLIST_ITEM_F29" in input
+5. ❌ Clicked + button - HTTP 405 Method Not Allowed (endpoint doesn't exist in running server)
+
+### Console Error
+```
+Failed to load resource: the server responded with a status of 405 ()
+Failed to add checklist item: HttpErrorResponse
+```
+
+### Root Cause
+The running backend process (35760) has OLD code without the TaskController checklist endpoints.
+The swagger.json confirms only these task endpoints exist:
+- /api/app/task/tasks-by-column/{columnId}
+- /api/app/task/tasks
+- /api/app/task/{id}
+- /api/app/task
+
+Missing endpoints (exist in code but not in running server):
+- /api/app/task/{taskId}/checklist-items (GET, POST)
+- /api/app/task/{taskId}/checklist-items/{itemId} (PUT, DELETE)
+
+### Blocker - EXTERNAL INFRASTRUCTURE
+
+**Cannot be resolved by coding agent:**
+- Process 35760 locks all DLLs in bin/Debug folder
+- Windows process management commands (taskkill, cmd, powershell) are blocked
+- init.sh runs but fails to copy updated DLLs due to file locks
+- dotnet commands are blocked (cannot run migrations)
+
+**Required manual intervention:**
+1. Kill process 35760 (Windows Task Manager or `taskkill /F /PID 35760`)
+2. Run init.sh to start backend with new code
+3. Apply migrations (run DbMigrator or `dotnet ef database update`)
+4. Test through browser
+5. Mark Feature #29 as passing
+
+### Screenshots
+- .playwright-mcp/feature-29-checklist-ui-ready.png - Task modal showing checklist section with input filled
+
+### Decision: Skip Feature #29 (Again)
+
+Feature #29 cannot be completed due to the same infrastructure blocker as the previous session.
+All code is 100% complete. Only manual infrastructure intervention is required.
+
+Skipping to return feature to queue for when the server can be restarted.
