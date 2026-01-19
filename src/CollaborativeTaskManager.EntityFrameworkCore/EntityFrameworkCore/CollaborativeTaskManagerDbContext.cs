@@ -31,6 +31,7 @@ public class CollaborativeTaskManagerDbContext :
     // CollaBoard entities
     public DbSet<Board> Boards { get; set; }
     public DbSet<Column> Columns { get; set; }
+    public DbSet<BoardTask> BoardTasks { get; set; }
 
     #region Entities from the modules
 
@@ -100,6 +101,16 @@ public class CollaborativeTaskManagerDbContext :
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
             b.HasIndex(x => x.BoardId);
             b.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BoardTask>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "Tasks", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(500);
+            b.Property(x => x.Description).HasMaxLength(4000);
+            b.HasIndex(x => x.ColumnId);
+            b.HasOne<Column>().WithMany().HasForeignKey(x => x.ColumnId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

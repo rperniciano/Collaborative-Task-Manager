@@ -27,21 +27,93 @@
     </div>
 
     <div class="columns-container">
-      @for (column of board()!.columns; track column.id) {
+      @for (column of columnsWithTasks(); track column.id) {
         <div class="column">
           <div class="column-header">
             <h2 class="column-title">{{ column.name }}</h2>
-            <span class="task-count">0 tasks</span>
+            <span class="task-count">{{ getTaskCount(column) }} {{ getTaskCount(column) === 1 ? 'task' : 'tasks' }}</span>
           </div>
           <div class="column-content">
-            <div class="empty-column-placeholder">
-              <p class="text-muted">Drop a task here</p>
-            </div>
+            <!-- Tasks List -->
+            @if (column.tasks && column.tasks.length > 0) {
+              @for (task of column.tasks; track task.id) {
+                <div class="task-card">
+                  <div class="task-title">{{ task.title }}</div>
+                  @if (task.description) {
+                    <div class="task-description">{{ task.description }}</div>
+                  }
+                  <div class="task-meta">
+                    <span class="priority-badge" [class]="getPriorityClass(task.priority)">
+                      {{ getPriorityLabel(task.priority) }}
+                    </span>
+                    @if (task.dueDate) {
+                      <span class="due-date">
+                        <i class="fa fa-calendar me-1"></i>
+                        {{ task.dueDate | date:'shortDate' }}
+                      </span>
+                    }
+                    @if (task.assigneeName) {
+                      <span class="assignee">
+                        <i class="fa fa-user me-1"></i>
+                        {{ task.assigneeName }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            } @else {
+              <!-- Empty Column Placeholder -->
+              @if (showAddTaskForm() !== column.id) {
+                <div class="empty-column-placeholder">
+                  <p class="text-muted">Drop a task here</p>
+                </div>
+              }
+            }
+
+            <!-- Add Task Form (inline) -->
+            @if (showAddTaskForm() === column.id) {
+              <div class="add-task-form">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter task title..."
+                  [(ngModel)]="newTaskTitle"
+                  (keyup.enter)="createTask(column.id)"
+                  (keyup.escape)="cancelAddTask()"
+                  [disabled]="creatingTask()"
+                  autofocus
+                />
+                <div class="add-task-actions">
+                  <button
+                    class="btn btn-primary btn-sm"
+                    (click)="createTask(column.id)"
+                    [disabled]="creatingTask() || !newTaskTitle().trim()"
+                  >
+                    @if (creatingTask()) {
+                      <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Add
+                  </button>
+                  <button
+                    class="btn btn-outline-secondary btn-sm"
+                    (click)="cancelAddTask()"
+                    [disabled]="creatingTask()"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            }
           </div>
           <div class="column-footer">
-            <button class="btn btn-outline-primary btn-sm add-task-btn">
-              <i class="fa fa-plus me-1"></i> Add task
-            </button>
+            @if (showAddTaskForm() !== column.id) {
+              <button
+                class="btn btn-outline-primary btn-sm add-task-btn"
+                (click)="openAddTaskForm(column.id)"
+              >
+                <i class="fa fa-plus me-1"></i> Add task
+              </button>
+            }
           </div>
         </div>
       }
