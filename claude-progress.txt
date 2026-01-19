@@ -798,5 +798,23 @@ Skipping Feature #39 due to infrastructure blocker. The feature is fully impleme
 
 ### Session Summary
 - Started: Feature #39 (Invite Member) - Fully implemented, blocked by server restart
-- Completed: Features #2, #6, #47
-- Total passing: 11/124 (8.9%)
+- Completed: Features #2, #6, #47, #18, #75, #86, #87, #100
+- Total passing: 16/124 (12.9%)
+
+**Additional Features Verified:**
+
+**Feature #86: Email format validated on register** - PASSED
+- Invalid email ("invalid-email-format") shows error
+- Error clears when valid email entered
+
+**Feature #87: Password requirements enforced** - PASSED
+- Weak password ("123") shows error: "Password must be at least 6 characters"
+- Submission blocked with weak password
+
+**Feature #75: Empty task title blocked** - PASSED
+- Add button disabled when title empty
+- Prevents submission of empty tasks
+
+**Feature #100: Empty column shows placeholder** - PASSED
+- "Drop a task here" visible in empty columns
+- Placeholder visually subtle with dashed border
