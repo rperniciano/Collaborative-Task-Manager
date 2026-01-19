@@ -120,6 +120,12 @@ export class BoardComponent implements OnInit, OnDestroy {
   loadingMembers = signal(false);
   removingMember = signal<string | null>(null);
 
+  // Board rename state
+  editBoardName = signal('');
+  renamingBoard = signal(false);
+  renameError = signal<string | null>(null);
+  renameSuccess = signal<string | null>(null);
+
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated;
   }
@@ -338,6 +344,9 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.inviteEmail.set('');
     this.inviteError.set(null);
     this.inviteSuccess.set(null);
+    this.editBoardName.set(this.board()?.name || '');
+    this.renameError.set(null);
+    this.renameSuccess.set(null);
     this.loadInvites();
     this.loadMembers();
   }
@@ -347,6 +356,8 @@ export class BoardComponent implements OnInit, OnDestroy {
     this.inviteEmail.set('');
     this.inviteError.set(null);
     this.inviteSuccess.set(null);
+    this.renameError.set(null);
+    this.renameSuccess.set(null);
   }
 
   onSettingsBackdropClick(event: MouseEvent): void {
@@ -449,6 +460,50 @@ export class BoardComponent implements OnInit, OnDestroy {
         console.error('Failed to remove member:', err);
         this.removingMember.set(null);
         alert('Failed to remove member. Please try again.');
+      }
+    });
+  }
+
+  // Board rename method
+  renameBoard(): void {
+    const newName = this.editBoardName().trim();
+    const currentName = this.board()?.name;
+
+    if (!newName) {
+      this.renameError.set('Board name cannot be empty.');
+      return;
+    }
+
+    if (newName === currentName) {
+      this.renameSuccess.set('Board name is already set to this value.');
+      return;
+    }
+
+    this.renamingBoard.set(true);
+    this.renameError.set(null);
+    this.renameSuccess.set(null);
+
+    this.http.put<{ id: string; name: string; ownerId: string; creationTime: string }>(
+      `${this.apiUrl}/api/app/board/board`,
+      { name: newName }
+    ).subscribe({
+      next: (updatedBoard) => {
+        // Update the board state with the new name
+        const currentBoard = this.board();
+        if (currentBoard) {
+          this.board.set({
+            ...currentBoard,
+            name: updatedBoard.name
+          });
+        }
+        this.renameSuccess.set('Board name updated successfully!');
+        this.renamingBoard.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to rename board:', err);
+        const errorMessage = err.error?.error?.message || err.error?.message || 'Failed to rename board. Please try again.';
+        this.renameError.set(errorMessage);
+        this.renamingBoard.set(false);
       }
     });
   }

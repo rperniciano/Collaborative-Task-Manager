@@ -247,6 +247,41 @@
           </button>
         </div>
         <div class="modal-body">
+          <!-- Board Name Section (Owner Only) -->
+          <div class="settings-section">
+            <h4 class="section-title">
+              <i class="fa fa-edit me-2"></i>Board Name
+            </h4>
+            <div class="rename-form">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter board name..."
+                  [(ngModel)]="editBoardName"
+                  [disabled]="renamingBoard()"
+                  (keyup.enter)="renameBoard()"
+                />
+                <button
+                  class="btn btn-primary"
+                  (click)="renameBoard()"
+                  [disabled]="renamingBoard() || !editBoardName().trim()"
+                >
+                  @if (renamingBoard()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  }
+                  <i class="fa fa-save me-1"></i> Save
+                </button>
+              </div>
+              @if (renameError()) {
+                <div class="alert alert-danger mt-2 mb-0">{{ renameError() }}</div>
+              }
+              @if (renameSuccess()) {
+                <div class="alert alert-success mt-2 mb-0">{{ renameSuccess() }}</div>
+              }
+            </div>
+          </div>
+
           <!-- Invite Member Section -->
           <div class="settings-section">
             <h4 class="section-title">
