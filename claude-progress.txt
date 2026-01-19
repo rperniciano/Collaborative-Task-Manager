@@ -4167,3 +4167,47 @@ All verification steps completed successfully. The feature works end-to-end:
 
 [Testing] Feature #3 verified - still passing - Register page renders correctly with all required elements (email, password, register button, login link)
 [Testing] Session complete - verified Feature #3
+
+## Session - 2026-01-19 22:40 (Feature #42 - COMPLETED)
+### Status
+- Features: 43/124 passing (34.7%)
+- Current feature: #42 "Invite link registration flow works" - COMPLETED ✅
+
+### Feature #42 Details
+- **Name**: Invite link registration flow works
+- **Category**: functional
+- **Description**: New user can register via invite link
+- **Dependencies**: Feature #4 (User can register), Feature #39 (Owner can invite members) - Both PASSING
+
+### Implementation Summary
+
+This feature was previously fixed in commit f67eee8 but needed verification after backend restart.
+The regression was that the board name was not displayed on the invite landing page.
+
+### Verification Results
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Owner creates invite for new email | ✅ | Created invite for regress42_1737305751@example.com |
+| 2. Open invite link in browser | ✅ | Navigated to /invite/accept?token=... |
+| 3. Verify invite landing page shows board name | ✅ | "My Board" displayed correctly (regression fixed!) |
+| 4. Click to register | ✅ | Clicked "Log In / Register" button |
+| 5. Complete registration | ✅ | Registered user: regress42_1737305751 |
+| 6. Verify user is added to board | ✅ | User appears in Board Members list in Settings |
+
+### Screenshots
+- .playwright-mcp/feature-42-invite-page-current.png - Board name displayed
+- .playwright-mcp/feature-42-registration-form-filled.png - Registration form
+- .playwright-mcp/feature-42-after-registration.png - Accept Invitation button
+- .playwright-mcp/feature-42-user-on-board.png - User on board after registration
+- .playwright-mcp/feature-42-user-added-to-board.png - User in Board Members list
+
+### Decision: Feature #42 PASSED ✅
+
+All verification steps completed successfully. The invite link registration flow works end-to-end.
+
+### Commit
+Commit: 011c9ab
+Message: "feat: Verify and mark Feature #42 as passing - Invite link registration flow"
+
+[Session] Feature #42 completed successfully - 43/124 features passing (34.7%)
