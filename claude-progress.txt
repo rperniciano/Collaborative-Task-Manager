@@ -1843,3 +1843,27 @@ Skipping Feature #43 due to infrastructure blocker. The fix has been applied but
 2. Rebuild and restart: `dotnet run --project src/CollaborativeTaskManager.HttpApi.Host`
 3. Verify the API endpoint works: `curl -k https://localhost:44396/api/app/board/board`
 4. Feature #43 can then be tested following the verification steps
+
+## Testing Session - 2026-01-19 (Feature #7 Regression Test)
+
+### Status
+- Features: 35/124 passing (28.2%)
+- Regression test: Feature #7 "Board view displays after login" - STILL PASSING
+
+### Verification Results
+1. ✅ Step 1: Log in as a user - Logged in as regression_test_user
+2. ✅ Step 2: Verify board view renders - Board at /board loaded successfully
+3. ✅ Step 3: Verify header bar with board name - "My Board" heading visible with welcome message
+4. ✅ Step 4: Verify three columns visible - To-Do, In Progress, Done columns all present
+5. ✅ Step 5: Verify user dropdown menu present - Dropdown with "Il mio account" and "Disconnettiti" options
+
+### Technical Notes
+- Backend server was down, restarted via init.sh
+- SignalR WebSocket connected successfully
+- No console errors detected
+- Board API (AmbiguousMatchException fix) is working after server restart
+
+### Screenshot
+- .playwright-mcp/feature-7-board-view-verified.png
+
+[Testing] Feature #7 verified - still passing
