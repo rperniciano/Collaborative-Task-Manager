@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using CollaborativeTaskManager.Application.Contracts.Boards;
 using CollaborativeTaskManager.Domain.Boards;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Identity;
 
 namespace CollaborativeTaskManager.Application.Boards;
 
@@ -19,63 +21,25 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
 {
     private readonly IRepository<Board, Guid> _boardRepository;
     private readonly IRepository<Column, Guid> _columnRepository;
-    private readonly IDbContextProvider<CollaborativeTaskManager.EntityFrameworkCore.CollaborativeTaskManagerDbContext> _dbContextProvider;
+    private readonly IRepository<BoardMember, Guid> _memberRepository;
+    private readonly IRepository<BoardInvite, Guid> _inviteRepository;
+    private readonly IIdentityUserRepository _userRepository;
+    private readonly ILogger<BoardAppService> _logger;
 
     public BoardAppService(
         IRepository<Board, Guid> boardRepository,
         IRepository<Column, Guid> columnRepository,
-        IDbContextProvider<CollaborativeTaskManager.EntityFrameworkCore.CollaborativeTaskManagerDbContext> dbContextProvider)
+        IRepository<BoardMember, Guid> memberRepository,
+        IRepository<BoardInvite, Guid> inviteRepository,
+        IIdentityUserRepository userRepository,
+        ILogger<BoardAppService> logger)
     {
         _boardRepository = boardRepository;
         _columnRepository = columnRepository;
-        _dbContextProvider = dbContextProvider;
-    }
-
-    /// <summary>
-    /// Initializes the database by creating required tables.
-    /// This is exposed as POST /api/app/board/initialize-database
-    /// </summary>
-    public async Task<string> InitializeDatabaseAsync()
-    {
-        return await EnsureTasksTableAsync();
-    }
-
-    /// <summary>
-    /// Ensures the AppTasks table exists in the database.
-    /// </summary>
-    public async Task<string> EnsureTasksTableAsync()
-    {
-        var dbContext = await _dbContextProvider.GetDbContextAsync();
-
-        var createTasksTableSql = @"
-            IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='AppTasks' AND xtype='U')
-            BEGIN
-                CREATE TABLE [AppTasks] (
-                    [Id] uniqueidentifier NOT NULL,
-                    [ColumnId] uniqueidentifier NOT NULL,
-                    [Title] nvarchar(500) NOT NULL,
-                    [Description] nvarchar(4000) NULL,
-                    [DueDate] datetime2 NULL,
-                    [Priority] int NOT NULL,
-                    [AssigneeId] uniqueidentifier NULL,
-                    [Order] int NOT NULL,
-                    [ExtraProperties] nvarchar(max) NOT NULL DEFAULT '',
-                    [ConcurrencyStamp] nvarchar(40) NOT NULL DEFAULT '',
-                    [CreationTime] datetime2 NOT NULL,
-                    [CreatorId] uniqueidentifier NULL,
-                    [LastModificationTime] datetime2 NULL,
-                    [LastModifierId] uniqueidentifier NULL,
-                    [IsDeleted] bit NOT NULL DEFAULT 0,
-                    [DeleterId] uniqueidentifier NULL,
-                    [DeletionTime] datetime2 NULL,
-                    CONSTRAINT [PK_AppTasks] PRIMARY KEY ([Id]),
-                    CONSTRAINT [FK_AppTasks_AppColumns_ColumnId] FOREIGN KEY ([ColumnId]) REFERENCES [AppColumns] ([Id]) ON DELETE CASCADE
-                );
-                CREATE INDEX [IX_AppTasks_ColumnId] ON [AppTasks] ([ColumnId]);
-            END";
-
-        await dbContext.Database.ExecuteSqlRawAsync(createTasksTableSql);
-        return "AppTasks table ensured.";
+        _memberRepository = memberRepository;
+        _inviteRepository = inviteRepository;
+        _userRepository = userRepository;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -83,8 +47,18 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
     {
         var currentUserId = CurrentUser.Id!.Value;
 
-        // Try to find existing board for this user
+        // Try to find existing board where user is owner
         var board = await _boardRepository.FirstOrDefaultAsync(b => b.OwnerId == currentUserId);
+
+        // If not owner, check if user is a member
+        if (board == null)
+        {
+            var membership = await _memberRepository.FirstOrDefaultAsync(m => m.UserId == currentUserId);
+            if (membership != null)
+            {
+                board = await _boardRepository.GetAsync(membership.BoardId);
+            }
+        }
 
         if (board == null)
         {
@@ -116,6 +90,7 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
             Name = board.Name,
             OwnerId = board.OwnerId,
             CreationTime = board.CreationTime,
+            IsOwner = board.OwnerId == currentUserId,
             Columns = boardColumns
                 .OrderBy(c => c.Order)
                 .Select(c => new ColumnDto
@@ -127,5 +102,257 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
                 })
                 .ToList()
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<BoardDto> UpdateBoardAsync(UpdateBoardDto input)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can update board
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can rename the board.");
+        }
+
+        board.Name = input.Name;
+        await _boardRepository.UpdateAsync(board);
+
+        return new BoardDto
+        {
+            Id = board.Id,
+            Name = board.Name,
+            OwnerId = board.OwnerId,
+            CreationTime = board.CreationTime
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<InviteDto> CreateInviteAsync(CreateInviteDto input)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can create invites
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can invite members.");
+        }
+
+        // Check if email is already invited
+        var existingInvite = await _inviteRepository.FirstOrDefaultAsync(
+            i => i.BoardId == board.Id && i.Email == input.Email.ToLowerInvariant() && i.ExpiresAt > DateTime.UtcNow);
+        if (existingInvite != null)
+        {
+            throw new BusinessException("An active invitation already exists for this email address.");
+        }
+
+        // Check if user with this email is already a member
+        var existingUser = await _userRepository.FindByNormalizedEmailAsync(input.Email.ToUpperInvariant());
+        if (existingUser != null)
+        {
+            if (existingUser.Id == board.OwnerId)
+            {
+                throw new BusinessException("You cannot invite yourself to your own board.");
+            }
+
+            var existingMembership = await _memberRepository.FirstOrDefaultAsync(
+                m => m.BoardId == board.Id && m.UserId == existingUser.Id);
+            if (existingMembership != null)
+            {
+                throw new BusinessException("This user is already a member of the board.");
+            }
+        }
+
+        // Generate a unique token
+        var token = GenerateInviteToken();
+
+        // Create the invite (expires in 7 days)
+        var invite = new BoardInvite(
+            GuidGenerator.Create(),
+            board.Id,
+            input.Email.ToLowerInvariant(),
+            token,
+            DateTime.UtcNow.AddDays(7)
+        );
+
+        await _inviteRepository.InsertAsync(invite);
+
+        // Log the invite link for development (since we can't send real emails)
+        var inviteLink = $"http://localhost:4200/invite/accept?token={token}";
+        _logger.LogInformation("==========================================");
+        _logger.LogInformation("INVITE EMAIL (Development Mode)");
+        _logger.LogInformation("==========================================");
+        _logger.LogInformation("To: {Email}", input.Email);
+        _logger.LogInformation("Subject: You've been invited to join '{BoardName}' on CollaBoard", board.Name);
+        _logger.LogInformation("Body: Click the link below to join the board:");
+        _logger.LogInformation("Link: {InviteLink}", inviteLink);
+        _logger.LogInformation("Token: {Token}", token);
+        _logger.LogInformation("Expires: {ExpiresAt}", invite.ExpiresAt);
+        _logger.LogInformation("==========================================");
+
+        return new InviteDto
+        {
+            Id = invite.Id,
+            BoardId = invite.BoardId,
+            Email = invite.Email,
+            Token = invite.Token,
+            ExpiresAt = invite.ExpiresAt,
+            CreatedAt = invite.CreationTime,
+            IsExpired = invite.IsExpired
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<List<InviteDto>> GetInvitesAsync()
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can view invites
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can view invitations.");
+        }
+
+        var invites = await _inviteRepository.GetListAsync(i => i.BoardId == board.Id);
+
+        return invites
+            .OrderByDescending(i => i.CreationTime)
+            .Select(i => new InviteDto
+            {
+                Id = i.Id,
+                BoardId = i.BoardId,
+                Email = i.Email,
+                Token = i.Token,
+                ExpiresAt = i.ExpiresAt,
+                CreatedAt = i.CreationTime,
+                IsExpired = i.IsExpired
+            })
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteInviteAsync(Guid id)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can delete invites
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can cancel invitations.");
+        }
+
+        var invite = await _inviteRepository.FirstOrDefaultAsync(i => i.Id == id && i.BoardId == board.Id);
+        if (invite == null)
+        {
+            throw new BusinessException("Invitation not found.");
+        }
+
+        await _inviteRepository.DeleteAsync(invite);
+    }
+
+    /// <inheritdoc />
+    public async Task<List<MemberDto>> GetMembersAsync()
+    {
+        var board = await GetUserBoardAsync();
+
+        // Get the owner
+        var owner = await _userRepository.GetAsync(board.OwnerId);
+
+        var members = new List<MemberDto>
+        {
+            new MemberDto
+            {
+                Id = Guid.Empty, // Owner doesn't have a membership record
+                UserId = owner.Id,
+                Email = owner.Email ?? string.Empty,
+                DisplayName = owner.Name ?? owner.UserName ?? owner.Email ?? "Owner",
+                JoinedAt = board.CreationTime,
+                IsOwner = true
+            }
+        };
+
+        // Get all members
+        var memberships = await _memberRepository.GetListAsync(m => m.BoardId == board.Id);
+        foreach (var membership in memberships)
+        {
+            var user = await _userRepository.GetAsync(membership.UserId);
+            members.Add(new MemberDto
+            {
+                Id = membership.Id,
+                UserId = user.Id,
+                Email = user.Email ?? string.Empty,
+                DisplayName = user.Name ?? user.UserName ?? user.Email ?? "Member",
+                JoinedAt = membership.JoinedAt,
+                IsOwner = false
+            });
+        }
+
+        return members.OrderBy(m => m.JoinedAt).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteMemberAsync(Guid userId)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can remove members
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can remove members.");
+        }
+
+        // Cannot remove the owner
+        if (userId == board.OwnerId)
+        {
+            throw new BusinessException("Cannot remove the board owner.");
+        }
+
+        var membership = await _memberRepository.FirstOrDefaultAsync(m => m.BoardId == board.Id && m.UserId == userId);
+        if (membership == null)
+        {
+            throw new BusinessException("Member not found.");
+        }
+
+        await _memberRepository.DeleteAsync(membership);
+    }
+
+    private async Task<Board> GetUserBoardAsync()
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+
+        // Try to find board where user is owner
+        var board = await _boardRepository.FirstOrDefaultAsync(b => b.OwnerId == currentUserId);
+
+        // If not owner, check if user is a member
+        if (board == null)
+        {
+            var membership = await _memberRepository.FirstOrDefaultAsync(m => m.UserId == currentUserId);
+            if (membership != null)
+            {
+                board = await _boardRepository.GetAsync(membership.BoardId);
+            }
+        }
+
+        if (board == null)
+        {
+            throw new BusinessException("Board not found. Please create a board first.");
+        }
+
+        return board;
+    }
+
+    private static string GenerateInviteToken()
+    {
+        var bytes = new byte[32];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(bytes);
+        }
+        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }

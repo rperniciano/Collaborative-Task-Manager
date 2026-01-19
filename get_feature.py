@@ -2,7 +2,7 @@ import sqlite3
 import json
 
 conn = sqlite3.connect('features.db')
-cursor = conn.execute('SELECT id, priority, category, name, description, steps, passes, in_progress, dependencies FROM features WHERE id = 19')
+cursor = conn.execute('SELECT id, priority, category, name, description, steps, passes, in_progress, dependencies FROM features WHERE id = 20')
 row = cursor.fetchone()
 if row:
     print(f"ID: {row[0]}")

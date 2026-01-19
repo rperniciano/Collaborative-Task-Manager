@@ -32,6 +32,8 @@ public class CollaborativeTaskManagerDbContext :
     public DbSet<Board> Boards { get; set; }
     public DbSet<Column> Columns { get; set; }
     public DbSet<BoardTask> BoardTasks { get; set; }
+    public DbSet<BoardMember> BoardMembers { get; set; }
+    public DbSet<BoardInvite> BoardInvites { get; set; }
 
     #region Entities from the modules
 
@@ -111,6 +113,27 @@ public class CollaborativeTaskManagerDbContext :
             b.Property(x => x.Description).HasMaxLength(4000);
             b.HasIndex(x => x.ColumnId);
             b.HasOne<Column>().WithMany().HasForeignKey(x => x.ColumnId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BoardMember>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "BoardMembers", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.BoardId);
+            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => new { x.BoardId, x.UserId }).IsUnique();
+            b.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BoardInvite>(b =>
+        {
+            b.ToTable(CollaborativeTaskManagerConsts.DbTablePrefix + "BoardInvites", CollaborativeTaskManagerConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Email).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Token).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.BoardId);
+            b.HasIndex(x => x.Token).IsUnique();
+            b.HasOne<Board>().WithMany().HasForeignKey(x => x.BoardId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

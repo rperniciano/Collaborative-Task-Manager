@@ -13,4 +13,9 @@ public class BoardWithColumnsDto : EntityDto<Guid>
     public Guid OwnerId { get; set; }
     public DateTime CreationTime { get; set; }
     public List<ColumnDto> Columns { get; set; } = new();
+
+    /// <summary>
+    /// Whether the current user is the owner of this board.
+    /// </summary>
+    public bool IsOwner { get; set; }
 }

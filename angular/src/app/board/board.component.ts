@@ -36,6 +36,7 @@ interface BoardWithColumnsDto {
   ownerId: string;
   creationTime: string;
   columns: ColumnDto[];
+  isOwner: boolean;
 }
 
 interface CreateTaskDto {
@@ -45,6 +46,25 @@ interface CreateTaskDto {
   dueDate?: string;
   priority: number;
   assigneeId?: string;
+}
+
+interface InviteDto {
+  id: string;
+  boardId: string;
+  email: string;
+  token: string;
+  expiresAt: string;
+  createdAt: string;
+  isExpired: boolean;
+}
+
+interface MemberDto {
+  id: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  joinedAt: string;
+  isOwner: boolean;
 }
 
 @Component({
@@ -78,6 +98,23 @@ export class BoardComponent implements OnInit {
   // Task detail modal state
   selectedTask = signal<TaskDto | null>(null);
   showTaskModal = signal(false);
+
+  // Settings modal state
+  showSettingsModal = signal(false);
+
+  // Invite state
+  inviteEmail = signal('');
+  sendingInvite = signal(false);
+  inviteError = signal<string | null>(null);
+  inviteSuccess = signal<string | null>(null);
+  pendingInvites = signal<InviteDto[]>([]);
+  loadingInvites = signal(false);
+  cancellingInvite = signal<string | null>(null);
+
+  // Members state
+  members = signal<MemberDto[]>([]);
+  loadingMembers = signal(false);
+  removingMember = signal<string | null>(null);
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated;
@@ -234,5 +271,135 @@ export class BoardComponent implements OnInit {
     const columns = this.columnsWithTasks();
     const column = columns.find(c => c.id === task.columnId);
     return column?.name || 'Unknown';
+  }
+
+  // Settings modal methods
+  openSettingsModal(): void {
+    this.showSettingsModal.set(true);
+    this.inviteEmail.set('');
+    this.inviteError.set(null);
+    this.inviteSuccess.set(null);
+    this.loadInvites();
+    this.loadMembers();
+  }
+
+  closeSettingsModal(): void {
+    this.showSettingsModal.set(false);
+    this.inviteEmail.set('');
+    this.inviteError.set(null);
+    this.inviteSuccess.set(null);
+  }
+
+  onSettingsBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.closeSettingsModal();
+    }
+  }
+
+  // Invite methods
+  private loadInvites(): void {
+    this.loadingInvites.set(true);
+    this.http.get<InviteDto[]>(`${this.apiUrl}/api/app/board/invites`).subscribe({
+      next: (invites) => {
+        this.pendingInvites.set(invites);
+        this.loadingInvites.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load invites:', err);
+        this.loadingInvites.set(false);
+      }
+    });
+  }
+
+  sendInvite(): void {
+    const email = this.inviteEmail().trim();
+    if (!email) {
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.inviteError.set('Please enter a valid email address.');
+      return;
+    }
+
+    this.sendingInvite.set(true);
+    this.inviteError.set(null);
+    this.inviteSuccess.set(null);
+
+    this.http.post<InviteDto>(`${this.apiUrl}/api/app/board/invites`, { email }).subscribe({
+      next: (invite) => {
+        this.inviteSuccess.set(`Invitation sent to ${email}. Check the server console for the invite link.`);
+        this.inviteEmail.set('');
+        this.sendingInvite.set(false);
+        // Reload invites
+        this.loadInvites();
+      },
+      error: (err) => {
+        console.error('Failed to send invite:', err);
+        const errorMessage = err.error?.error?.message || err.error?.message || 'Failed to send invitation. Please try again.';
+        this.inviteError.set(errorMessage);
+        this.sendingInvite.set(false);
+      }
+    });
+  }
+
+  cancelInvite(inviteId: string): void {
+    this.cancellingInvite.set(inviteId);
+    this.http.delete(`${this.apiUrl}/api/app/board/invites/${inviteId}`).subscribe({
+      next: () => {
+        this.cancellingInvite.set(null);
+        this.loadInvites();
+      },
+      error: (err) => {
+        console.error('Failed to cancel invite:', err);
+        this.cancellingInvite.set(null);
+        alert('Failed to cancel invitation. Please try again.');
+      }
+    });
+  }
+
+  // Member methods
+  private loadMembers(): void {
+    this.loadingMembers.set(true);
+    this.http.get<MemberDto[]>(`${this.apiUrl}/api/app/board/members`).subscribe({
+      next: (members) => {
+        this.members.set(members);
+        this.loadingMembers.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load members:', err);
+        this.loadingMembers.set(false);
+      }
+    });
+  }
+
+  removeMember(userId: string): void {
+    if (!confirm('Are you sure you want to remove this member from the board?')) {
+      return;
+    }
+
+    this.removingMember.set(userId);
+    this.http.delete(`${this.apiUrl}/api/app/board/members/${userId}`).subscribe({
+      next: () => {
+        this.removingMember.set(null);
+        this.loadMembers();
+      },
+      error: (err) => {
+        console.error('Failed to remove member:', err);
+        this.removingMember.set(null);
+        alert('Failed to remove member. Please try again.');
+      }
+    });
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   }
 }

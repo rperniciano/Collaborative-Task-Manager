@@ -23,6 +23,11 @@
       <h1 class="board-title">{{ board()!.name }}</h1>
       <div class="board-info">
         <span class="text-muted">Welcome, {{ currentUserName }}</span>
+        @if (board()!.isOwner) {
+          <button class="btn btn-outline-secondary btn-sm ms-3" (click)="openSettingsModal()">
+            <i class="fa fa-cog me-1"></i> Settings
+          </button>
+        }
       </div>
     </div>
 
@@ -216,6 +221,151 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="closeTaskModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Board Settings Modal (Owner Only) -->
+  @if (showSettingsModal()) {
+    <div class="modal-backdrop" (click)="onSettingsBackdropClick($event)">
+      <div class="settings-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Board Settings</h3>
+          <button class="close-btn" (click)="closeSettingsModal()" aria-label="Close modal">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Invite Member Section -->
+          <div class="settings-section">
+            <h4 class="section-title">
+              <i class="fa fa-user-plus me-2"></i>Invite Member
+            </h4>
+            <div class="invite-form">
+              <div class="input-group">
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="Enter email address..."
+                  [(ngModel)]="inviteEmail"
+                  [disabled]="sendingInvite()"
+                  (keyup.enter)="sendInvite()"
+                />
+                <button
+                  class="btn btn-primary"
+                  (click)="sendInvite()"
+                  [disabled]="sendingInvite() || !inviteEmail().trim()"
+                >
+                  @if (sendingInvite()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  }
+                  <i class="fa fa-paper-plane me-1"></i> Send Invite
+                </button>
+              </div>
+              @if (inviteError()) {
+                <div class="alert alert-danger mt-2 mb-0">{{ inviteError() }}</div>
+              }
+              @if (inviteSuccess()) {
+                <div class="alert alert-success mt-2 mb-0">{{ inviteSuccess() }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Pending Invites Section -->
+          <div class="settings-section">
+            <h4 class="section-title">
+              <i class="fa fa-envelope me-2"></i>Pending Invites
+            </h4>
+            @if (loadingInvites()) {
+              <div class="text-center py-3">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading...
+              </div>
+            } @else if (pendingInvites().length === 0) {
+              <p class="text-muted mb-0">No pending invitations.</p>
+            } @else {
+              <div class="invites-list">
+                @for (invite of pendingInvites(); track invite.id) {
+                  <div class="invite-item" [class.expired]="invite.isExpired">
+                    <div class="invite-info">
+                      <span class="invite-email">{{ invite.email }}</span>
+                      <span class="invite-status" [class.text-danger]="invite.isExpired">
+                        @if (invite.isExpired) {
+                          Expired
+                        } @else {
+                          Expires {{ invite.expiresAt | date:'shortDate' }}
+                        }
+                      </span>
+                    </div>
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      (click)="cancelInvite(invite.id)"
+                      [disabled]="cancellingInvite() === invite.id"
+                      title="Cancel invitation"
+                    >
+                      @if (cancellingInvite() === invite.id) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="fa fa-times"></i>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Members Section -->
+          <div class="settings-section">
+            <h4 class="section-title">
+              <i class="fa fa-users me-2"></i>Board Members
+            </h4>
+            @if (loadingMembers()) {
+              <div class="text-center py-3">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading...
+              </div>
+            } @else if (members().length === 0) {
+              <p class="text-muted mb-0">No members yet. Invite someone!</p>
+            } @else {
+              <div class="members-list">
+                @for (member of members(); track member.userId) {
+                  <div class="member-item">
+                    <div class="member-info">
+                      <span class="member-avatar">{{ getInitials(member.displayName) }}</span>
+                      <div class="member-details">
+                        <span class="member-name">
+                          {{ member.displayName }}
+                          @if (member.isOwner) {
+                            <span class="badge bg-primary ms-1">Owner</span>
+                          }
+                        </span>
+                        <span class="member-email">{{ member.email }}</span>
+                      </div>
+                    </div>
+                    @if (!member.isOwner && board()!.isOwner) {
+                      <button
+                        class="btn btn-outline-danger btn-sm"
+                        (click)="removeMember(member.userId)"
+                        [disabled]="removingMember() === member.userId"
+                        title="Remove member"
+                      >
+                        @if (removingMember() === member.userId) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          <i class="fa fa-user-times"></i>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeSettingsModal()">Close</button>
         </div>
       </div>
     </div>

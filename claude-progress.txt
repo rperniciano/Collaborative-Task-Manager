@@ -659,3 +659,111 @@ The only missing piece is the AppTasks table in the database, which will be crea
 - Feature #27: User can add tags to task
 - Feature #29: User can add checklist item
 - And many more task-related features...
+
+## Testing Session - 2026-01-19 04:36
+
+### Regression Test: Feature #5 - User can log in with valid credentials
+- Status: **PASSED** (still working)
+- All 6 verification steps passed:
+  1. ✅ Navigate to login page - Login form displayed
+  2. ✅ Enter registered email - Used admin account
+  3. ✅ Enter correct password - ABP default password
+  4. ✅ Submit login form - Form submitted successfully
+  5. ✅ Verify redirect to board view - Redirected to /board
+  6. ✅ Verify user session is active - Username displayed, welcome message shown
+- No console errors (only localization warnings)
+- Screenshot saved: .playwright-mcp/regression-feature-5-login-success.png
+
+[Testing] Feature #5 verified - still passing
+
+## Session 11 - 2026-01-19 (Feature #39 - Invite Member - Implementation Complete, Blocked)
+
+### Status
+- Features: 8/124 passing (6.5%)
+- Current feature: #39 "Owner can invite member by email" - BLOCKED (requires server restart)
+
+### Accomplished This Session
+
+1. **Created Domain Entities**
+   - Created `BoardMember.cs` entity for board membership tracking
+     - Fields: Id, BoardId, UserId, JoinedAt
+   - Created `BoardInvite.cs` entity for invitation management
+     - Fields: Id, BoardId, Email, Token, ExpiresAt
+     - Includes IsExpired computed property
+
+2. **Updated DbContext**
+   - Added DbSet for BoardMembers and BoardInvites
+   - Configured entity mappings with proper indexes and foreign keys
+   - BoardId + UserId unique constraint on BoardMembers
+   - Token unique constraint on BoardInvites
+
+3. **Created Database Tables**
+   - Used create-invite-tables.js script with msnodesqlv8
+   - Successfully created AppBoardMembers and AppBoardInvites tables
+
+4. **Implemented DTOs**
+   - CreateInviteDto - Input for creating invites
+   - InviteDto - Response for invite data
+   - MemberDto - Response for member data
+   - UpdateBoardDto - Input for board updates
+   - Added IsOwner property to BoardWithColumnsDto
+
+5. **Implemented Backend API**
+   - `CreateInviteAsync` - Creates invite with 7-day expiration, logs invite link to console
+   - `GetInvitesAsync` - Lists pending invites (owner only)
+   - `DeleteInviteAsync` - Cancels invite (owner only)
+   - `GetMembersAsync` - Lists all board members including owner
+   - `DeleteMemberAsync` - Removes member from board (owner only)
+   - Added owner-only permission checks to all invite/member endpoints
+   - Invite token generated using RandomNumberGenerator (32 bytes, base64 encoded)
+
+6. **Implemented Angular Frontend**
+   - Added Settings button (owner only) in board header
+   - Created settings modal with:
+     - Invite form with email input and validation
+     - Pending invites list with cancel functionality
+     - Members list with remove functionality (for owner)
+   - Added state management with Angular signals
+   - Added comprehensive SCSS styling for modal and components
+
+### Blocker Status
+**CRITICAL INFRASTRUCTURE BLOCKER**: The backend server needs to be restarted to:
+1. Pick up the new IsOwner property in BoardWithColumnsDto
+2. Load the new invite/member endpoints in BoardAppService
+3. Apply the interface changes in IBoardAppService
+
+The Settings button is not appearing because the running backend was started before these code changes were made. The API is not returning `isOwner: true` for the board owner.
+
+### Files Created/Modified This Session
+- src/CollaborativeTaskManager.Domain/Boards/BoardMember.cs (NEW)
+- src/CollaborativeTaskManager.Domain/Boards/BoardInvite.cs (NEW)
+- src/CollaborativeTaskManager.EntityFrameworkCore/EntityFrameworkCore/CollaborativeTaskManagerDbContext.cs (MODIFIED)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/CreateInviteDto.cs (NEW)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/InviteDto.cs (NEW)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/MemberDto.cs (NEW)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/UpdateBoardDto.cs (NEW)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/BoardWithColumnsDto.cs (MODIFIED - added IsOwner)
+- src/CollaborativeTaskManager.Application.Contracts/Boards/IBoardAppService.cs (MODIFIED)
+- src/CollaborativeTaskManager.Application/Boards/BoardAppService.cs (MODIFIED - full invite/member implementation)
+- angular/src/app/board/board.component.ts (MODIFIED - settings modal state and methods)
+- angular/src/app/board/board.component.html (MODIFIED - settings button and modal UI)
+- angular/src/app/board/board.component.scss (MODIFIED - settings modal styles)
+- create-invite-tables.js (NEW - SQL table creation script)
+
+### Commands Needed (Must be run manually)
+```bash
+# Stop the current backend server (Ctrl+C in the terminal)
+# Then restart:
+cd "D:/Programmi/PORTFOLIO/Collaborative Task Manager"
+dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
+```
+
+### What Will Work After Restart
+1. Settings button will appear for board owners
+2. Owner can enter email and send invite
+3. Invite link will be logged to console (development mode)
+4. Owner can view pending invites and cancel them
+5. Owner can view and remove board members
+
+### Decision
+Skipping Feature #39 due to infrastructure blocker. The feature is fully implemented in code but cannot be tested until the backend server is restarted.

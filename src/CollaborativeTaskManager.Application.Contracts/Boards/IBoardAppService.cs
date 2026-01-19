@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
 
@@ -15,13 +17,32 @@ public interface IBoardAppService : IApplicationService
     Task<BoardWithColumnsDto> GetBoardAsync();
 
     /// <summary>
-    /// Ensures the AppTasks table exists in the database.
-    /// This is exposed as POST /api/app/board/ensure-tasks-table
+    /// Updates the board name. Only the owner can perform this action.
     /// </summary>
-    Task<string> EnsureTasksTableAsync();
+    Task<BoardDto> UpdateBoardAsync(UpdateBoardDto input);
 
     /// <summary>
-    /// Initializes the database by creating required tables.
+    /// Creates an invitation to join the board. Only the owner can perform this action.
     /// </summary>
-    Task<string> InitializeDatabaseAsync();
+    Task<InviteDto> CreateInviteAsync(CreateInviteDto input);
+
+    /// <summary>
+    /// Gets all pending invitations for the board. Only the owner can perform this action.
+    /// </summary>
+    Task<List<InviteDto>> GetInvitesAsync();
+
+    /// <summary>
+    /// Cancels a pending invitation. Only the owner can perform this action.
+    /// </summary>
+    Task DeleteInviteAsync(Guid id);
+
+    /// <summary>
+    /// Gets all members of the board (including the owner).
+    /// </summary>
+    Task<List<MemberDto>> GetMembersAsync();
+
+    /// <summary>
+    /// Removes a member from the board. Only the owner can perform this action.
+    /// </summary>
+    Task DeleteMemberAsync(Guid userId);
 }
