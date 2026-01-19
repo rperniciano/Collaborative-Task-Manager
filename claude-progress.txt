@@ -1307,3 +1307,60 @@ The implementation is complete and committed. To verify:
 ### Decision
 Skipping Feature #78 due to infrastructure blocker. The feature is fully implemented and will work after server restart. The next agent session should be able to verify and mark it passing once the server is restarted.
 
+## Session - 2026-01-19 (Feature #112)
+
+### Status
+- Features: 28/124 passing (22.6%)
+- Current feature: #112 "Submit button disabled during processing" - COMPLETED
+
+### Accomplished This Session
+
+1. **Verified Feature #112: Submit button disabled during processing**
+   - Feature prevents duplicate submissions by disabling submit buttons during API calls
+   - Tested using MutationObserver to track real-time button state changes
+
+2. **Tested Task Creation Form**
+   - Opened Add Task form in To-Do column
+   - Verified Add button is disabled when input is empty
+   - Entered task title "TEST_FEATURE_112_TASK"
+   - Verified button becomes enabled
+   - Clicked Add button
+   - Observed via MutationObserver:
+     - Before click: `disabled: false, text: "Add"`
+     - During processing: `disabled: true, hasSpinner: true`
+   - Task created successfully
+   - Screenshot: .playwright-mcp/feature-112-add-button-disabled-empty.png
+   - Screenshot: .playwright-mcp/feature-112-add-button-enabled.png
+   - Screenshot: .playwright-mcp/feature-112-task-created.png
+
+3. **Tested Send Invite Form**
+   - Opened Settings modal
+   - Verified Send Invite button disabled when email is empty
+   - Entered email "test_invite_feature112@example.com"
+   - Clicked Send Invite button
+   - Observed via MutationObserver:
+     - Before click: `disabled: false, text: "Send Invite"`
+     - During processing: `disabled: true, hasSpinner: true`
+   - Invite sent successfully with success message
+   - Screenshot: .playwright-mcp/feature-112-settings-modal.png
+   - Screenshot: .playwright-mcp/feature-112-invite-sent.png
+
+4. **Code Review Confirmed**
+   - All form buttons in Angular app have proper disabled state handling:
+     - Task creation: `[disabled]="creatingTask() || !newTaskTitle().trim()"`
+     - Send invite: `[disabled]="sendingInvite() || !inviteEmail().trim()"`
+     - Cancel invite: `[disabled]="cancellingInvite() === invite.id"`
+     - Remove member: `[disabled]="removingMember() === member.userId"`
+     - Accept invite: `[disabled]="accepting()"`
+   - All buttons show spinner during processing
+   - Buttons re-enable after completion or error
+
+### Notes
+- No code changes needed - feature was already implemented correctly
+- All network requests returned 200 OK
+- No console errors detected
+
+### Next Steps
+- Feature #112 marked as passing
+- Continue with other pending features
+
