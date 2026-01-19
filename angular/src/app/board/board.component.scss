@@ -13,7 +13,7 @@
   justify-content: center;
   height: 100%;
   min-height: 400px;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.17:1 contrast ratio on #f9fafb
 }
 
 .board-header {
@@ -99,7 +99,7 @@
 
 .task-count {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 6.10:1 contrast ratio on #e5e7eb
   background-color: #e5e7eb;
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -117,13 +117,14 @@
   align-items: center;
   justify-content: center;
   min-height: 80px;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed #9ca3af; // Darker border for better visibility
   border-radius: 8px;
   margin: 0.5rem;
 
   p {
     margin: 0;
     font-size: 0.875rem;
+    color: #4b5563; // WCAG AA: 6.87:1 contrast ratio on #f3f4f6
   }
 }
 
@@ -169,7 +170,7 @@
 
 .task-description {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white task card
   margin-bottom: 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -183,7 +184,7 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white task card
 }
 
 .priority-badge {
@@ -212,7 +213,7 @@
 .due-date, .assignee {
   display: flex;
   align-items: center;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white task card
 
   i {
     font-size: 0.625rem;
@@ -307,7 +308,7 @@
   background: none;
   border: none;
   font-size: 1.25rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.17:1 contrast ratio on #f9fafb
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 4px;
@@ -344,7 +345,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white
   margin-bottom: 0.5rem;
 }
 
@@ -370,7 +371,7 @@
 }
 
 .no-value {
-  color: #9ca3af;
+  color: #6b7280; // WCAG AA: 4.83:1 contrast ratio on white
   font-style: italic;
 }
 
@@ -391,13 +392,13 @@
   color: #374151;
 
   i {
-    color: #6b7280;
+    color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white
   }
 }
 
 .timestamp-value {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white
 }
 
 .modal-footer {
@@ -444,7 +445,7 @@
   align-items: center;
 
   i {
-    color: #6b7280;
+    color: #4b5563; // WCAG AA: 7.93:1 contrast ratio on white
   }
 }
 
@@ -500,7 +501,7 @@
 
 .invite-status {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.17:1 contrast ratio on #f9fafb
 }
 
 .members-list {
@@ -560,7 +561,7 @@
 
 .member-email {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #4b5563; // WCAG AA: 7.17:1 contrast ratio on #f9fafb
 }
 
 // Responsive adjustments
