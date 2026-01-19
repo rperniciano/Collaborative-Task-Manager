@@ -142,7 +142,8 @@ public class BoardHub : Hub
     public async Task SendTyping(string boardId, string context)
     {
         var userId = _currentUser.Id?.ToString();
-        var userName = _currentUser.UserName ?? "Unknown";
+        // Use display name if available, otherwise fallback to username
+        var displayName = _currentUser.Name ?? _currentUser.UserName ?? "Unknown";
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -150,7 +151,7 @@ public class BoardHub : Hub
         }
 
         var groupName = $"board-{boardId}";
-        await Clients.OthersInGroup(groupName).SendAsync("UserTyping", userId, userName, context);
+        await Clients.OthersInGroup(groupName).SendAsync("UserTyping", userId, displayName, context);
     }
 
     /// <summary>

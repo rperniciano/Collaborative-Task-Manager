@@ -4003,3 +4003,99 @@ All changes committed in: feat: Add online members section to board header (Feat
 The feature implementation is 100% complete. The code is correct and committed.
 Feature will pass verification once Angular server is restarted and UI is tested.
 
+
+## Testing Session - 2026-01-19 22:17 (Feature #42 Regression Test)
+
+### Feature #42: Invite link registration flow works
+
+**Status**: REGRESSION FOUND AND FIXED ✅ (pending backend restart)
+
+### Regression Detected
+
+**Issue**: The invite landing page was not displaying the board name, violating Step 3 of Feature #42 verification: 
+"Verify invite landing page shows board name"
+
+**Root Cause**: 
+1. Backend InviteDto did not include BoardName property
+2. BoardAppService.GetInviteByTokenAsync was not populating board name even though it fetched the board entity
+3. Frontend template was not displaying the board name
+
+### Fix Applied
+
+**Backend Changes:**
+- InviteDto.cs: Added `BoardName` property
+- BoardAppService.cs: Updated all InviteDto creation points to populate BoardName:
+  - GetInviteByTokenAsync (line 384)
+  - CreateInviteAsync (line 201)
+  - GetInvitesAsync (line 230)
+  - CreateExpiredInviteAsync (line 526)
+
+**Frontend Changes:**
+- invite-accept.component.ts: Added boardName to InviteDto interface
+- invite-accept.component.html: Display board name in both login and accept prompts:
+  - "You've been invited to join {boardName}"
+
+### Verification Status
+
+**Code Changes**: ✅ Complete and committed (commit f67eee8)
+**Backend Restart**: ⏳ Required but not possible (dotnet command not available)
+**Full Feature Test**: ⏳ Pending backend restart
+
+### Next Steps to Complete Feature #42
+
+Once backend is restarted manually:
+1. Navigate to: http://localhost:4200/invite/accept?token=RTKNTHvX2g4LMzyTsto4U2Qs-bQYCuDx3TpoVKxUESQ
+2. Verify board name "My Board" is displayed ✅
+3. Click "Log In / Register"
+4. Register new user with email: regress42_1737305751@example.com
+5. Complete registration
+6. Accept invite
+7. Verify user added to board
+8. Mark Feature #42 as passing
+
+### Screenshot
+- .playwright-mcp/feature-42-regression-boardname-missing.png - Shows board name missing before fix
+
+
+
+[Testing] Session complete - Feature #42 regression found, fixed, and committed
+
+### Summary
+
+**Feature**: #42 - Invite link registration flow works
+**Status**: Regression detected and fixed (pending backend restart)
+**Commit**: f67eee8
+
+### What Happened
+
+1. **Started regression test** for Feature #42
+2. **Created invite** for regress42_1737305751@example.com ✅
+3. **Navigated to invite link** ✅
+4. **Found regression**: Board name NOT displayed on invite landing page ❌
+5. **Marked feature as failing** ✅
+6. **Fixed the regression**:
+   - Added BoardName to InviteDto
+   - Updated BoardAppService to populate BoardName in all 4 locations
+   - Updated Angular component to display board name
+7. **Committed the fix** ✅
+
+### Blocker
+
+The backend server needs to be restarted to apply the code changes, but the
+'dotnet' command is not available in this testing environment. The fix is
+complete and committed, but cannot be verified until the backend is restarted.
+
+### Next Steps
+
+Manual intervention required:
+1. Restart backend: `dotnet run --project src/CollaborativeTaskManager.HttpApi.Host`
+2. Re-test Feature #42 to verify board name is displayed
+3. Complete remaining verification steps (registration flow)
+4. Mark Feature #42 as passing once verified
+
+### Documentation Created
+
+- FEATURE_42_FIX_SUMMARY.md - Detailed fix documentation
+- claude-progress.txt - Session notes added
+- .playwright-mcp/feature-42-regression-boardname-missing.png - Screenshot of issue
+
