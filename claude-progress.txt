@@ -1867,3 +1867,88 @@ Skipping Feature #43 due to infrastructure blocker. The fix has been applied but
 - .playwright-mcp/feature-7-board-view-verified.png
 
 [Testing] Feature #7 verified - still passing
+
+## Session - 2026-01-19 (Feature #43 - COMPLETED)
+
+### Status
+- Features: 36/124 passing (29.0%)
+- Current feature: #43 "Invite link login flow works" - COMPLETED ✅
+
+### Feature #43 Details
+- **Name**: Invite link login flow works
+- **Description**: Existing user can accept invite after login
+- **Dependencies**: Features #5 (Route guards), #39 (Owner can invite member) - both PASSING
+
+### Infrastructure Fix Applied
+- Killed old dotnet process that was running with stale code
+- Restarted backend server with `init.sh`
+- AmbiguousMatchException fix now active (RemoteService attribute on IBoardAppService)
+- Backend server now properly routes to BoardController without conflicts
+
+### Verification Results - ALL STEPS PASSED ✅
+
+**Step 1: Owner creates invite for existing user email**
+- Created test users:
+  - Owner: owner_f43_verify / owner_f43_verify@test.com
+  - Member: member_f43_verify / member_f43_verify@test.com
+- Logged in as owner, went to Settings
+- Entered member's email and clicked "Send Invite"
+- Invite created with token: TgA5XWPZxi4LoEmwd1tbdChayOFLsa4GXcoFNS_0YSE
+- Screenshot: feature-43-step1-invite-sent.png
+
+**Step 2: User opens invite link**
+- Logged out as owner
+- Navigated to: http://localhost:4200/invite/accept?token=TgA5XWPZxi4LoEmwd1tbdChayOFLsa4GXcoFNS_0YSE
+- Page showed "You've been invited!" with email verification
+- "Log In / Register" button displayed for unauthenticated users
+- Screenshot: feature-43-step2-invite-page.png
+
+**Step 3: User logs in**
+- Clicked "Log In / Register"
+- Redirected to ABP login page with returnUrl containing invite token
+- Entered member credentials and logged in
+
+**Step 4: Verify redirect back to invite acceptance**
+- After login, redirected to: http://localhost:4200/invite/accept?token=...
+- Page now showed "Accept Invitation" button (authenticated state)
+- Screenshot: feature-43-step4-redirect-back-logged-in.png
+
+**Step 5: Accept invite**
+- Clicked "Accept Invitation" button
+- API call to accept invite succeeded
+
+**Step 6: Verify user added to board**
+- Logged in as owner
+- Opened Board Settings
+- Board Members section shows:
+  - member_f43_verify (member) - with remove button
+  - owner_f43_verify (Owner) - marked as Owner
+- Pending Invites section shows "No pending invitations" (invite consumed)
+- Screenshot: feature-43-step6-member-added-verified.png
+
+### API Verification
+```json
+[
+  {"userId":"d316fdbd-...", "email":"member_f43_verify@test.com", "displayName":"member_f43_verify", "isOwner":false},
+  {"userId":"3c93b0b9-...", "email":"owner_f43_verify@test.com", "displayName":"owner_f43_verify", "isOwner":true}
+]
+```
+
+### Technical Notes
+- Invite token stored in returnUrl parameter during OAuth flow
+- ABP OAuth properly preserves return URL through login process
+- AcceptInvite API creates BoardMember record and deletes the invite
+- Members with their own board still see their own board (by design - owner boards prioritized)
+
+### Screenshots
+- .playwright-mcp/feature-43-step1-invite-sent.png
+- .playwright-mcp/feature-43-step2-invite-page.png
+- .playwright-mcp/feature-43-step4-redirect-back-logged-in.png
+- .playwright-mcp/feature-43-step6-member-added-verified.png
+
+### Git Commit
+- Commit: "test: Verify Feature #43 - Invite link login flow works"
+
+### Next Steps
+- Continue with other pending features
+- Progress: 36/124 features passing (29.0%)
