@@ -32,6 +32,15 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
     }
 
     /// <summary>
+    /// Initializes the database by creating required tables.
+    /// This is exposed as POST /api/app/board/initialize-database
+    /// </summary>
+    public async Task<string> InitializeDatabaseAsync()
+    {
+        return await EnsureTasksTableAsync();
+    }
+
+    /// <summary>
     /// Ensures the AppTasks table exists in the database.
     /// </summary>
     public async Task<string> EnsureTasksTableAsync()

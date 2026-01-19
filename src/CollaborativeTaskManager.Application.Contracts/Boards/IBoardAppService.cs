@@ -16,6 +16,12 @@ public interface IBoardAppService : IApplicationService
 
     /// <summary>
     /// Ensures the AppTasks table exists in the database.
+    /// This is exposed as POST /api/app/board/ensure-tasks-table
     /// </summary>
     Task<string> EnsureTasksTableAsync();
+
+    /// <summary>
+    /// Initializes the database by creating required tables.
+    /// </summary>
+    Task<string> InitializeDatabaseAsync();
 }
