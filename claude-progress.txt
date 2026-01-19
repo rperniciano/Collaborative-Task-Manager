@@ -2032,3 +2032,108 @@ Feature continues to work correctly. No code changes needed.
 ### Git Commit
 - "test: Verify Feature #52 - Invalid/expired tokens rejected"
 
+
+## Testing Session - 2026-01-19 (Feature #43 Regression Test)
+
+### Status
+- Features: 37/124 passing (29.8%)
+- Regression test: Feature #43 "Invite link login flow works" - STILL PASSING ✅
+
+### Verification Results
+1. ✅ Step 1: Owner creates invite for existing user email - Created invite for member_reg_test@test.com
+2. ✅ Step 2: User opens invite link - Invite page displayed correctly with email verification
+3. ✅ Step 3: User logs in - Logged in as member_reg_test
+4. ✅ Step 4: Verify redirect back to invite acceptance - Redirected to /invite/accept with Accept button
+5. ✅ Step 5: Accept invite - API call succeeded, user redirected to board
+6. ✅ Step 6: Verify user added to board - Board Members shows member_reg_test, no pending invites
+
+### Technical Notes
+- Test users: owner_reg_test (owner), member_reg_test (invitee)
+- Invite token stored in returnUrl parameter during OAuth flow
+- ABP OAuth properly preserves return URL through login process
+- AcceptInvite API creates BoardMember record and deletes the invite
+- No console errors detected
+
+### Screenshot
+- .playwright-mcp/feature-43-regression-verified.png
+
+[Testing] Feature #43 verified - still passing
+
+## Session - 2026-01-19 (Feature #22 - User can delete a task)
+
+### Status
+- Features: 38/124 passing (30.6%)
+- Completed feature: #22
+
+### Feature #22 Details
+- **Name**: User can delete a task
+- **Category**: functional
+- **Description**: Task can be removed with confirmation
+- **Dependencies**: Feature #20 (User can view task details) - PASSING
+- **Steps**:
+  1. Log in and create a unique task
+  2. Open the task modal
+  3. Click delete button
+  4. Verify confirmation dialog appears
+  5. Confirm deletion
+  6. Verify task is removed from column
+  7. Verify task no longer exists in board
+
+### Implementation Summary
+
+1. **Backend Changes (TaskAppService.cs)**
+   - Added `BoardMember` repository for checking board membership
+   - Created `HasBoardAccessAsync()` helper method to check if user is owner or member
+   - Updated `DeleteAsync()` to allow members (not just owners) to delete tasks
+   - Added SignalR broadcast on task deletion for real-time sync
+
+2. **Frontend Changes (board.component.ts)**
+   - Added `deletingTask` signal for loading state
+   - Implemented `deleteTask()` method with:
+     - Confirmation dialog before deletion
+     - HTTP DELETE request to API
+     - Local state update to remove task from column
+     - Modal close after successful deletion
+     - Error handling with alert message
+
+3. **Frontend Changes (board.component.html)**
+   - Added Delete button (red, with trash icon) to task modal footer
+   - Button shows loading spinner during deletion
+   - Close button disabled during deletion
+
+### Verification Results - ALL STEPS PASSED ✅
+
+1. ✅ Logged in as feature22_test user
+2. ✅ Created test task "TEST_FEATURE_22_DELETE_ME"
+3. ✅ Clicked on task card to open modal
+4. ✅ Delete button visible in modal footer (red button with trash icon)
+5. ✅ Clicked delete button - confirmation dialog appeared
+6. ✅ Confirmed deletion - task removed from column
+7. ✅ Modal closed automatically
+8. ✅ Page refresh - task still deleted (persisted in database)
+
+### Screenshots
+- .playwright-mcp/feature-22-task-modal-with-delete.png - Task modal showing delete button
+- .playwright-mcp/feature-22-task-deleted.png - Board after task deletion
+
+### Technical Notes
+- Delete endpoint: DELETE /api/app/task/{taskId}
+- Confirmation uses browser's native confirm() dialog
+- SignalR broadcasts deletion to other connected users via BroadcastTaskDeletedAsync
+- Frontend already had `removeTaskFromColumn()` method for SignalR events
+
+### Git Commit
+- "feat: Implement task deletion (Feature #22)"
+
+### Known Issue (Separate from Feature #22)
+- Duplicate task creation issue when creating tasks - SignalR notification causes task to appear twice
+- Root cause: Task is added locally AND via SignalR broadcast to same user
+- Fix needed: Filter out own user's SignalR events or use optimistic updates pattern
+
+### Next Steps
+- Feature #65: Deleted task truly removed (depends on #22) - now unblocked
+- Feature #80: Task deleted syncs to other users (depends on #22) - now unblocked
+- Feature #84: Delete task while viewing shows toast (depends on #22) - now unblocked
+- Feature #91: Success toast on task delete (depends on #22) - now unblocked
+- Feature #93: Confirmation dialog for destructive actions (depends on #22) - now unblocked
+- Feature #111: Double click delete only deletes once (depends on #22) - now unblocked
