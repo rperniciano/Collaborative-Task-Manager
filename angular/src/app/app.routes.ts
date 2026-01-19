@@ -13,6 +13,10 @@ export const APP_ROUTES: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'invite/accept',
+    loadComponent: () => import('./invite-accept/invite-accept.component').then(c => c.InviteAcceptComponent),
+  },
+  {
     path: 'account',
     loadChildren: () => import('@abp/ng.account').then(c => c.createRoutes()),
   },
@@ -27,5 +31,9 @@ export const APP_ROUTES: Routes = [
   {
     path: 'setting-management',
     loadChildren: () => import('@abp/ng.setting-management').then(c => c.createRoutes()),
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./not-found/not-found.component').then(c => c.NotFoundComponent),
   },
 ];

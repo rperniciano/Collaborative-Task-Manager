@@ -50,4 +50,21 @@ public interface IBoardAppService : IApplicationService
     /// Reorders the columns on the board. Any board member can perform this action.
     /// </summary>
     Task ReorderColumnsAsync(ReorderColumnsDto input);
+
+    /// <summary>
+    /// Gets an invite by its token. Used for the invite acceptance flow.
+    /// Does not require authentication.
+    /// </summary>
+    Task<InviteDto?> GetInviteByTokenAsync(string token);
+
+    /// <summary>
+    /// Accepts an invitation to join a board. Requires authentication.
+    /// The invite must not be expired.
+    /// </summary>
+    Task<BoardDto> AcceptInviteAsync(string token);
+
+    /// <summary>
+    /// Creates an expired invite for testing purposes. Development only.
+    /// </summary>
+    Task<InviteDto> CreateExpiredInviteAsync(CreateInviteDto input);
 }

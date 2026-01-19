@@ -1,0 +1,56 @@
+<div class="invite-accept-container">
+  <div class="invite-card">
+    <!-- Loading state -->
+    <div *ngIf="loading()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading invitation...</p>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="!loading() && error()" class="error-state">
+      <div class="error-icon">!</div>
+      <h2>Invalid Invitation</h2>
+      <p class="error-message">{{ error() }}</p>
+      <button class="btn btn-secondary" (click)="goHome()">Go to Home</button>
+    </div>
+
+    <!-- Valid invite - not logged in -->
+    <div *ngIf="!loading() && !error() && invite() && !isAuthenticated" class="login-prompt">
+      <div class="invite-icon">&#x2709;</div>
+      <h2>You've been invited!</h2>
+      <p>You need to log in or register to accept this invitation.</p>
+      <p class="invite-email">Invitation sent to: <strong>{{ invite()?.email }}</strong></p>
+      <button class="btn btn-primary" (click)="login()">Log In / Register</button>
+    </div>
+
+    <!-- Valid invite - logged in, can accept -->
+    <div *ngIf="!loading() && !error() && invite() && isAuthenticated && !acceptSuccess()" class="accept-prompt">
+      <div class="invite-icon">&#x2709;</div>
+      <h2>You've been invited!</h2>
+      <p>You've been invited to join a collaborative board.</p>
+      <p class="invite-email">Invitation sent to: <strong>{{ invite()?.email }}</strong></p>
+
+      <div *ngIf="acceptError()" class="accept-error">
+        {{ acceptError() }}
+      </div>
+
+      <button
+        class="btn btn-primary"
+        (click)="acceptInvite()"
+        [disabled]="accepting()">
+        {{ accepting() ? 'Accepting...' : 'Accept Invitation' }}
+      </button>
+      <button class="btn btn-secondary" (click)="goHome()" [disabled]="accepting()">
+        Cancel
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div *ngIf="acceptSuccess()" class="success-state">
+      <div class="success-icon">&#x2713;</div>
+      <h2>Welcome aboard!</h2>
+      <p>You've successfully joined the board.</p>
+      <p class="redirect-notice">Redirecting to board...</p>
+    </div>
+  </div>
+</div>

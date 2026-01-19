@@ -357,6 +357,104 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         _logger.LogInformation("Columns reordered for board {BoardId}: {ColumnIds}", board.Id, string.Join(", ", input.ColumnIds));
     }
 
+    /// <inheritdoc />
+    [AllowAnonymous]
+    public async Task<InviteDto?> GetInviteByTokenAsync(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        var invite = await _inviteRepository.FirstOrDefaultAsync(i => i.Token == token);
+        if (invite == null)
+        {
+            return null;
+        }
+
+        // Get board name for display
+        var board = await _boardRepository.GetAsync(invite.BoardId);
+
+        return new InviteDto
+        {
+            Id = invite.Id,
+            BoardId = invite.BoardId,
+            Email = invite.Email,
+            Token = invite.Token,
+            ExpiresAt = invite.ExpiresAt,
+            CreatedAt = invite.CreationTime,
+            IsExpired = invite.IsExpired
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<BoardDto> AcceptInviteAsync(string token)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            throw new BusinessException("Invalid invite token.");
+        }
+
+        var invite = await _inviteRepository.FirstOrDefaultAsync(i => i.Token == token);
+        if (invite == null)
+        {
+            throw new BusinessException("Invitation not found.");
+        }
+
+        // Check if the invite has expired
+        if (invite.IsExpired)
+        {
+            throw new BusinessException("This invitation has expired.");
+        }
+
+        // Get the board
+        var board = await _boardRepository.GetAsync(invite.BoardId);
+        if (board == null)
+        {
+            throw new BusinessException("Board not found.");
+        }
+
+        // Check if user is already the owner
+        if (board.OwnerId == currentUserId)
+        {
+            throw new BusinessException("You are already the owner of this board.");
+        }
+
+        // Check if user is already a member
+        var existingMembership = await _memberRepository.FirstOrDefaultAsync(
+            m => m.BoardId == board.Id && m.UserId == currentUserId);
+        if (existingMembership != null)
+        {
+            throw new BusinessException("You are already a member of this board.");
+        }
+
+        // Create membership
+        var membership = new BoardMember(
+            GuidGenerator.Create(),
+            board.Id,
+            currentUserId,
+            DateTime.UtcNow
+        );
+        await _memberRepository.InsertAsync(membership);
+
+        // Delete the used invite
+        await _inviteRepository.DeleteAsync(invite);
+
+        _logger.LogInformation(
+            "User {UserId} accepted invitation to board {BoardId} and joined as member",
+            currentUserId, board.Id);
+
+        return new BoardDto
+        {
+            Id = board.Id,
+            Name = board.Name,
+            OwnerId = board.OwnerId,
+            CreationTime = board.CreationTime
+        };
+    }
+
     private async Task<Board> GetUserBoardAsync()
     {
         var currentUserId = CurrentUser.Id!.Value;
@@ -380,6 +478,52 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         }
 
         return board;
+    }
+
+    /// <inheritdoc />
+    public async Task<InviteDto> CreateExpiredInviteAsync(CreateInviteDto input)
+    {
+        var currentUserId = CurrentUser.Id!.Value;
+        var board = await GetUserBoardAsync();
+
+        // Only owner can create invites
+        if (board.OwnerId != currentUserId)
+        {
+            throw new BusinessException("Only the board owner can invite members.");
+        }
+
+        // Generate a unique token
+        var token = GenerateInviteToken();
+
+        // Create the invite with a past expiration date (already expired)
+        var invite = new BoardInvite(
+            GuidGenerator.Create(),
+            board.Id,
+            input.Email.ToLowerInvariant(),
+            token,
+            DateTime.UtcNow.AddDays(-1) // Expired 1 day ago
+        );
+
+        await _inviteRepository.InsertAsync(invite);
+
+        _logger.LogInformation("==========================================");
+        _logger.LogInformation("EXPIRED TEST INVITE CREATED (Development Mode)");
+        _logger.LogInformation("==========================================");
+        _logger.LogInformation("To: {Email}", input.Email);
+        _logger.LogInformation("Token: {Token}", token);
+        _logger.LogInformation("Expired At: {ExpiresAt}", invite.ExpiresAt);
+        _logger.LogInformation("==========================================");
+
+        return new InviteDto
+        {
+            Id = invite.Id,
+            BoardId = invite.BoardId,
+            Email = invite.Email,
+            Token = invite.Token,
+            ExpiresAt = invite.ExpiresAt,
+            CreatedAt = invite.CreationTime,
+            IsExpired = invite.IsExpired
+        };
     }
 
     private static string GenerateInviteToken()
