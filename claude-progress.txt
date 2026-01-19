@@ -1511,3 +1511,58 @@ Skipping Feature #49 due to infrastructure blocker. The feature cannot be verifi
 - No code changes needed - feature remains passing
 
 [Testing] Feature #109 verified - still passing
+
+## Session - 2026-01-19 (Feature #43 - Invite Link Login Flow)
+
+### Status
+- Features: 30/124 passing (24.2%)
+- Current feature: #43 "Invite link login flow works" - BLOCKED (infrastructure)
+
+### Feature #43 Details
+- **Name**: Invite link login flow works
+- **Description**: Existing user can accept invite after login
+- **Dependencies**: Features #5 (Route guards), #39 (Owner can invite member) - both PASSING
+- **Steps**:
+  1. Owner creates invite for existing user email
+  2. User opens invite link
+  3. User logs in
+  4. Verify redirect back to invite acceptance
+  5. Accept invite
+  6. Verify user added to board
+
+### Blocker Status
+**INFRASTRUCTURE BLOCKER**: Backend server (.NET) is not running.
+
+- Angular frontend is running on http://localhost:4200 ✅
+- Backend server on https://localhost:44396 is NOT running ❌
+- Cannot start backend server - `dotnet` command not in allowed commands list
+- Screenshot shows error: "Http failure response for https://localhost:44396/.well-known/openid-configuration: 0 undefined"
+
+### Code Review (Implementation Verified)
+The invite link login flow is fully implemented in the codebase:
+
+1. **Angular Frontend** (`invite-accept.component.ts`):
+   - `login()` method at line 87-91 properly stores return URL with invite token
+   - Uses `this.authService.navigateToLogin({ returnUrl })` to redirect to login
+   - Return URL format: `/invite/accept?token=${this.token()}`
+   - After login, ABP auth service should redirect back to the return URL
+
+2. **Angular Template** (`invite-accept.component.html`):
+   - Shows "Log In / Register" button for unauthenticated users (lines 18-23)
+   - Shows "Accept Invitation" button for authenticated users (lines 27-46)
+
+3. **Backend Endpoints**:
+   - `GET /api/app/board/invite-by-token` - Anonymous endpoint to fetch invite details
+   - `POST /api/app/board/accept-invite` - Authenticated endpoint to accept invite
+
+### Action Required
+To verify this feature, start the backend server manually:
+```bash
+dotnet run --project "D:/Programmi/PORTFOLIO/Collaborative Task Manager/src/CollaborativeTaskManager.HttpApi.Host"
+```
+
+### Decision
+Skipping Feature #43 due to infrastructure blocker. The implementation is complete and correct based on code review. Once the backend server is started, the feature can be verified and marked passing.
+
+### Screenshots
+- `.playwright-mcp/feature-43-initial-load.png` - Shows backend not running error
