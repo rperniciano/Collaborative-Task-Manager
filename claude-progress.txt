@@ -3809,3 +3809,39 @@ The 500 errors were caused by:
 
 ### Decision: Feature #29 PASSED
 
+
+
+## Session - 2026-01-19 21:45 (Feature #61 - Verified)
+
+### Status
+- Features: 41/124 passing (33.1%)
+- Current feature: #61 "Login redirects to board after success" - COMPLETED
+
+### Feature #61 Details
+- **Name**: Login redirects to board after success
+- **Category**: navigation
+- **Description**: Post-login redirect works correctly
+- **Dependencies**: Feature #5 (User can log in with valid credentials) - PASSING
+
+### Verification Results
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Clear session | ✅ | Logged out successfully (if already logged in) |
+| 2. Navigate to login page | ✅ | Clicked 'Accedi' link, redirected to ABP OAuth login page |
+| 3. Log in successfully | ✅ | Entered admin credentials, clicked login button |
+| 4. Verify redirect to board view | ✅ | URL changed to http://localhost:4200/board |
+| 5. Verify board content loads | ✅ | Board 'My Board' displayed with all columns and tasks |
+
+### Additional Checks:
+- SignalR WebSocket connected successfully ✅
+- No JavaScript console errors ✅
+- 'Welcome, admin' message displayed ✅
+- Board columns visible (To-Do, In Progress, Done) ✅
+- Task data loaded (Test Task for Contrast Check) ✅
+
+### Screenshots:
+- .playwright-mcp/feature-61-login-redirect-verified.png - Board view after successful login
+
+### Decision: Feature #61 PASSED ✅
+
