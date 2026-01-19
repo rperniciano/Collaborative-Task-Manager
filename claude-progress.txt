@@ -1406,3 +1406,33 @@ Skipping Feature #78 due to infrastructure blocker. The feature is fully impleme
 - Feature #57 marked as passing
 - Continue with other pending features
 
+
+## Session - 2026-01-19 (Feature #49 - API returns 401 for unauthenticated requests)
+
+### Status
+- Features: 29/124 passing (23.4%)
+- Current feature: #49 "API returns 401 for unauthenticated requests" - BLOCKED
+
+### Feature #49 Details
+- **Name**: API returns 401 for unauthenticated requests
+- **Category**: security
+- **Dependencies**: Feature #1 (App loads without errors) - PASSING
+- **Description**: API properly rejects unauthenticated requests with 401 status
+
+### Blocker Status
+**INFRASTRUCTURE BLOCKER**: Backend server (.NET) is not running.
+
+- Angular frontend is running on http://localhost:4200 (started via npm)
+- Backend server on https://localhost:44396 is NOT running
+- Cannot start backend server due to permission restrictions (dotnet command not in allowed list)
+- This feature requires making API calls to backend endpoints to verify 401 responses
+
+### Action Required
+To verify this feature, the backend server must be started manually:
+```bash
+dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
+```
+
+### Decision
+Skipping Feature #49 due to infrastructure blocker. The feature cannot be verified without the backend server running. Once the server is started by a future session or manually, the feature can be verified and marked passing.
+
