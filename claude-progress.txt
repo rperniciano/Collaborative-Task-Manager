@@ -985,3 +985,124 @@ Additional verification:
 Screenshot: .playwright-mcp/regression-feature-75-empty-title-blocked.png
 
 [Testing] Feature #75 verified - still passing
+
+## Testing Session - 2026-01-19 (Regression Test #3)
+
+### Feature #5: User can log in with valid credentials - PASSED (Still Working)
+Verified all 6 steps:
+1. ✅ Navigate to login page - Clicked 'Accedi' link
+2. ✅ Enter registered email - Entered 'admin' username
+3. ✅ Enter correct password - Entered valid password
+4. ✅ Submit login form - Clicked 'Accedi' button
+5. ✅ Verify redirect to board view - Redirected to http://localhost:4200/board
+6. ✅ Verify user session is active - 'Welcome, admin' displayed, user dropdown shows 'admin'
+
+Additional verification:
+- No console errors
+- Board layout correct with 3 columns
+- Admin-specific features visible (Settings, Amministrazione)
+- Screenshot: .playwright-mcp/regression-feature-5-login-success.png
+
+[Testing] Feature #5 verified - still passing
+
+## Session 14 - 2026-01-19 (Feature #9 - SignalR Implementation)
+
+### Status
+- Features: 17/124 passing (13.7%)
+- Current feature: #9 "SignalR connects on board load" - IMPLEMENTATION COMPLETE, BLOCKED ON SERVER RESTART
+
+### Feature #9 Details
+- **Name**: SignalR connects on board load
+- **Category**: functional
+- **Dependencies**: Feature #7 (Board view displays after login) - PASSING
+- **Blocking**: Features #10, #13, #78-84, #116 (real-time features)
+
+### Accomplished This Session
+
+1. **Created SignalR Hub (Backend)**
+   - Created `src/CollaborativeTaskManager.HttpApi.Host/Hubs/BoardHub.cs`
+   - Features:
+     - Authenticated hub (requires login)
+     - JoinBoard/LeaveBoard methods for board-specific groups
+     - Presence tracking (in-memory for MVP)
+     - Typing indicators (SendTyping/StopTyping)
+     - Ping/Pong for connection testing
+     - Event handlers for UserJoined, UserLeft, PresenceUpdated
+   - Console logging for debugging
+
+2. **Configured SignalR in Backend Module**
+   - Updated `CollaborativeTaskManagerHttpApiHostModule.cs`:
+     - Added `ConfigureSignalR()` method calling `context.Services.AddSignalR()`
+     - Added hub mapping: `endpoints.MapHub<BoardHub>("/hubs/board")`
+     - Added console log to confirm hub is mapped
+
+3. **Created SignalR Service (Angular)**
+   - Created `angular/src/app/services/signalr.service.ts`
+   - Features:
+     - Connection management (connect, disconnect, reconnect)
+     - Automatic reconnection with exponential backoff
+     - Observable signals for connection state, online users, typing users
+     - Event callbacks for real-time updates
+     - Typing indicator methods
+     - Ping for connection testing
+
+4. **Updated package.json**
+   - Added `@microsoft/signalr: ^8.0.0` to dependencies
+
+5. **Updated Board Component**
+   - Injected SignalRService
+   - Added `connectToSignalR()` method called after board loads
+   - Added `ngOnDestroy()` to disconnect from SignalR when leaving
+
+### Files Created/Modified
+- src/CollaborativeTaskManager.HttpApi.Host/Hubs/BoardHub.cs (NEW)
+- src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManagerHttpApiHostModule.cs (MODIFIED)
+- angular/src/app/services/signalr.service.ts (NEW)
+- angular/src/app/board/board.component.ts (MODIFIED)
+- angular/package.json (MODIFIED)
+
+### Blocker Status
+**INFRASTRUCTURE BLOCKER**: Both servers need to be restarted:
+1. Backend server needs restart to load the new BoardHub and SignalR configuration
+2. Angular frontend needs restart after `npm install` or `yarn install` to install @microsoft/signalr
+
+### Commands Needed (Must be run manually)
+```bash
+# 1. Install SignalR package in Angular
+cd "D:/Programmi/PORTFOLIO/Collaborative Task Manager/angular"
+yarn install  # or npm install
+
+# 2. Restart Angular frontend
+yarn start  # or npm start
+
+# 3. Restart backend server
+cd "D:/Programmi/PORTFOLIO/Collaborative Task Manager"
+dotnet run --project src/CollaborativeTaskManager.HttpApi.Host
+```
+
+### Verification Steps (After Server Restart)
+1. Navigate to http://localhost:4200
+2. Log in as any user
+3. Navigate to /board
+4. Open browser DevTools Console
+5. Verify logs show:
+   - "[SignalR] Connected to hub"
+   - "[SignalR] Joined board {boardId}"
+   - "[Board] Connected to SignalR for board: {boardId}"
+6. Check Network tab for WebSocket connection to /hubs/board
+7. Check backend console for:
+   - "[SignalR] User {username} connected"
+   - "[SignalR] User {username} joined board {boardId}"
+
+### Technical Notes
+- SignalR uses WebSocket transport by default
+- Hub is protected with [Authorize] attribute - only authenticated users can connect
+- Access token is passed via query string (withCredentials: true)
+- Automatic reconnection handles transient disconnects
+- In-memory presence tracking (ConcurrentDictionary) for MVP
+- Hub endpoint: /hubs/board
+
+### Decision
+Feature #9 implementation is complete. Marking as blocked due to infrastructure (server restart required).
+Cannot verify with browser automation until both servers are restarted.
+

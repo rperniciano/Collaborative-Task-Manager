@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService, ConfigStateService, EnvironmentService } from '@abp/ng.core';
 import { Router } from '@angular/router';
+import { SignalRService, UserPresence } from '../services/signalr.service';
 
 interface TaskDto {
   id: string;
@@ -74,12 +75,13 @@ interface MemberDto {
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.scss']
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private configState = inject(ConfigStateService);
   private router = inject(Router);
   private environment = inject(EnvironmentService);
+  signalR = inject(SignalRService);
 
   private get apiUrl(): string {
     return this.environment.getEnvironment().apis.default.url;
@@ -138,6 +140,11 @@ export class BoardComponent implements OnInit {
     this.loadBoard();
   }
 
+  ngOnDestroy(): void {
+    // Disconnect from SignalR when leaving the board
+    this.signalR.disconnect();
+  }
+
   private loadBoard(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -158,6 +165,8 @@ export class BoardComponent implements OnInit {
         this.loading.set(false);
         // Load tasks after board is loaded
         this.loadTasks();
+        // Connect to SignalR for real-time updates
+        this.connectToSignalR(data.id);
       },
       error: (err) => {
         console.error('Failed to load board:', err);
@@ -410,5 +419,21 @@ export class BoardComponent implements OnInit {
       return parts[0].charAt(0).toUpperCase();
     }
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+
+  /**
+   * Connect to SignalR hub for real-time updates.
+   */
+  private async connectToSignalR(boardId: string): Promise<void> {
+    try {
+      const connected = await this.signalR.connect(boardId);
+      if (connected) {
+        console.log('[Board] Connected to SignalR for board:', boardId);
+      } else {
+        console.warn('[Board] Failed to connect to SignalR');
+      }
+    } catch (error) {
+      console.error('[Board] SignalR connection error:', error);
+    }
   }
 }

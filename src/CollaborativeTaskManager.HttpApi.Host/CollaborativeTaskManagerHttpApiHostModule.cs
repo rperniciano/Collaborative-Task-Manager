@@ -41,6 +41,7 @@ using Volo.Abp.OpenIddict;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.Studio.Client.AspNetCore;
 using Volo.Abp.Security.Claims;
+using CollaborativeTaskManager.Hubs;
 
 namespace CollaborativeTaskManager;
 
@@ -123,6 +124,12 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
         ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
+        ConfigureSignalR(context);
+    }
+
+    private void ConfigureSignalR(ServiceConfigurationContext context)
+    {
+        context.Services.AddSignalR();
     }
 
     private void ConfigureStudio(IHostEnvironment hostingEnvironment)
@@ -308,6 +315,15 @@ public class CollaborativeTaskManagerHttpApiHostModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
+
+        // Map SignalR Hub for real-time communication
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapHub<BoardHub>("/hubs/board");
+        });
+
         app.UseConfiguredEndpoints();
+
+        System.Console.WriteLine("[SignalR] BoardHub mapped to /hubs/board");
     }
 }
