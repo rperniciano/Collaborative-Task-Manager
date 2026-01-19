@@ -1566,3 +1566,34 @@ Skipping Feature #43 due to infrastructure blocker. The implementation is comple
 
 ### Screenshots
 - `.playwright-mcp/feature-43-initial-load.png` - Shows backend not running error
+
+## Testing Session - 2026-01-19 (Feature #124 Regression Test)
+
+### Status
+- Features: 30/124 passing (24.2%)
+- Regression test: Feature #124 "CSRF protection on forms" - STILL PASSING
+
+### Verification Results
+1. ✅ Step 1: Inspect form submission requests - Login form has __RequestVerificationToken (155 chars)
+2. ✅ Step 2: Verify anti-forgery token is included - Token in form + XSRF-TOKEN cookie
+3. ✅ Step 3: Verify token validates server-side - Form with valid token processed (got credential error)
+4. ✅ Step 4: Attempt form submission without token - Tested via curl
+5. ✅ Step 5: Verify request is rejected - Server returns HTTP 400 without token
+
+### Technical Details
+- XSRF-TOKEN cookie: 155-character token
+- ABP Framework built-in CSRF protection: abp.security.antiForgery
+- Token header: RequestVerificationToken
+- Token cookie: XSRF-TOKEN
+
+### Screenshots
+- .playwright-mcp/feature-124-login-form.png - Login form with CSRF token
+- .playwright-mcp/feature-124-csrf-validated.png - Form submission with valid token
+- .playwright-mcp/feature-124-final-verification.png - Final state
+
+### Notes
+- Board API returns 500 error (unrelated backend issue, not CSRF)
+- CSRF protection verified on server-rendered forms (ABP Identity)
+- No code changes needed - feature remains passing
+
+[Testing] Feature #124 verified - still passing

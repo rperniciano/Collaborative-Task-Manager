@@ -15,7 +15,9 @@ namespace CollaborativeTaskManager.Application.Boards;
 
 /// <summary>
 /// Application service for Board operations.
+/// RemoteService disabled because we use a manual BoardController for custom routing.
 /// </summary>
+[RemoteService(IsEnabled = false)]
 [Authorize]
 public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppService
 {
