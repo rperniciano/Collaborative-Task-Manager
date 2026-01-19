@@ -21,6 +21,7 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
     private readonly IRepository<BoardTask, Guid> _taskRepository;
     private readonly IRepository<Column, Guid> _columnRepository;
     private readonly IRepository<Board, Guid> _boardRepository;
+    private readonly IRepository<BoardMember, Guid> _memberRepository;
     private readonly IRepository<IdentityUser, Guid> _userRepository;
     private readonly IRealTimeNotificationService _realTimeNotificationService;
 
@@ -28,14 +29,32 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
         IRepository<BoardTask, Guid> taskRepository,
         IRepository<Column, Guid> columnRepository,
         IRepository<Board, Guid> boardRepository,
+        IRepository<BoardMember, Guid> memberRepository,
         IRepository<IdentityUser, Guid> userRepository,
         IRealTimeNotificationService realTimeNotificationService)
     {
         _taskRepository = taskRepository;
         _columnRepository = columnRepository;
         _boardRepository = boardRepository;
+        _memberRepository = memberRepository;
         _userRepository = userRepository;
         _realTimeNotificationService = realTimeNotificationService;
+    }
+
+    /// <summary>
+    /// Check if the current user has access to the specified board (owner or member).
+    /// </summary>
+    private async Task<bool> HasBoardAccessAsync(Guid boardId, Guid userId)
+    {
+        var board = await _boardRepository.GetAsync(boardId);
+        if (board.OwnerId == userId)
+        {
+            return true;
+        }
+
+        // Check if user is a member
+        var membership = await _memberRepository.FirstOrDefaultAsync(m => m.BoardId == boardId && m.UserId == userId);
+        return membership != null;
     }
 
     /// <inheritdoc />
@@ -142,16 +161,19 @@ public class TaskAppService : CollaborativeTaskManagerAppService, ITaskAppServic
         var currentUserId = CurrentUser.Id!.Value;
         var task = await _taskRepository.GetAsync(id);
 
-        // Verify access
+        // Verify access (owner or member can delete tasks)
         var column = await _columnRepository.GetAsync(task.ColumnId);
         var board = await _boardRepository.GetAsync(column.BoardId);
 
-        if (board.OwnerId != currentUserId)
+        if (!await HasBoardAccessAsync(board.Id, currentUserId))
         {
             throw new BusinessException("You do not have access to delete this task.");
         }
 
         await _taskRepository.DeleteAsync(id);
+
+        // Broadcast to other users in the board via SignalR
+        await _realTimeNotificationService.BroadcastTaskDeletedAsync(board.Id.ToString(), id.ToString());
     }
 
     private async Task<List<TaskDto>> MapTasksToDtosAsync(List<BoardTask> tasks)

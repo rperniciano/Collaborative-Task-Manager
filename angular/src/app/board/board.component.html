@@ -220,7 +220,17 @@
           }
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeTaskModal()">Close</button>
+          <button
+            class="btn btn-danger me-auto"
+            (click)="deleteTask()"
+            [disabled]="deletingTask()"
+          >
+            @if (deletingTask()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="fa fa-trash me-1"></i> Delete
+          </button>
+          <button class="btn btn-secondary" (click)="closeTaskModal()" [disabled]="deletingTask()">Close</button>
         </div>
       </div>
     </div>

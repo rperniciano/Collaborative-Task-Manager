@@ -101,6 +101,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   // Task detail modal state
   selectedTask = signal<TaskDto | null>(null);
   showTaskModal = signal(false);
+  deletingTask = signal(false);
 
   // Settings modal state
   showSettingsModal = signal(false);
@@ -277,6 +278,45 @@ export class BoardComponent implements OnInit, OnDestroy {
   closeTaskModal(): void {
     this.showTaskModal.set(false);
     this.selectedTask.set(null);
+    this.deletingTask.set(false);
+  }
+
+  deleteTask(): void {
+    const task = this.selectedTask();
+    if (!task) {
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
+
+    this.deletingTask.set(true);
+
+    this.http.delete(`${this.apiUrl}/api/app/task/${task.id}`).subscribe({
+      next: () => {
+        // Remove the task from the local state
+        const columns = this.columnsWithTasks();
+        const updatedColumns = columns.map(col => {
+          if (col.id === task.columnId) {
+            return {
+              ...col,
+              tasks: col.tasks.filter(t => t.id !== task.id)
+            };
+          }
+          return col;
+        });
+        this.columnsWithTasks.set(updatedColumns);
+
+        // Close the modal
+        this.closeTaskModal();
+      },
+      error: (err) => {
+        console.error('Failed to delete task:', err);
+        this.deletingTask.set(false);
+        alert('Failed to delete task. Please try again.');
+      }
+    });
   }
 
   onModalBackdropClick(event: MouseEvent): void {
