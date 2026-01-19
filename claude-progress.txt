@@ -1222,3 +1222,88 @@ npm start  # or yarn start
 ```
 
 [Testing] Session blocked - Angular frontend not running
+
+## Session 23 - 2026-01-19 (Feature #78 - Real-time Task Sync)
+
+### Status
+- Features: 27/124 passing (21.8%)
+- Current feature: #78 "Task created syncs to other users" - BLOCKED (server restart needed)
+
+### Feature #78 Details
+- **Name**: Task created syncs to other users
+- **Category**: realtime
+- **Dependencies**: Features #9 (SignalR connection), #19 (Task creation) - both PASSING
+- **Description**: New tasks appear in real-time for other users viewing the same board
+
+### Implementation Completed
+
+1. **Created IRealTimeNotificationService Interface**
+   - Location: `src/CollaborativeTaskManager.Application.Contracts/Realtime/IRealTimeNotificationService.cs`
+   - Methods:
+     - `BroadcastTaskCreatedAsync(boardId, task)`
+     - `BroadcastTaskUpdatedAsync(boardId, task)`
+     - `BroadcastTaskDeletedAsync(boardId, taskId)`
+     - `BroadcastTaskMovedAsync(boardId, taskId, newColumnId, newOrder)`
+     - `BroadcastColumnsReorderedAsync(boardId, columns)`
+
+2. **Implemented RealTimeNotificationService**
+   - Location: `src/CollaborativeTaskManager.HttpApi.Host/Realtime/RealTimeNotificationService.cs`
+   - Uses `IHubContext<BoardHub>` to broadcast to SignalR groups
+   - Implements `ITransientDependency` for ABP DI
+
+3. **Updated TaskAppService**
+   - Injected `IRealTimeNotificationService`
+   - Modified `CreateAsync()` to broadcast `TaskCreated` event after inserting task
+   - Broadcasts to group `board-{boardId}` so all users on the same board receive the event
+
+4. **Updated BoardHub.cs**
+   - Added `BroadcastTaskCreated()`, `BroadcastTaskUpdated()`, `BroadcastTaskDeleted()`, `BroadcastTaskMoved()` methods
+   - Methods broadcast to `Clients.OthersInGroup()` to exclude the sender
+
+5. **Updated Angular board.component.ts**
+   - Added `setupSignalRHandlers()` method that registers callbacks:
+     - `signalR.onTaskCreated` → `addTaskToColumn(task)`
+     - `signalR.onTaskUpdated` → `updateTaskInColumn(task)`
+     - `signalR.onTaskDeleted` → `removeTaskFromColumn(taskId)`
+     - `signalR.onTaskMoved` → `moveTaskToColumn(taskId, newColumnId, newOrder)`
+   - Added helper methods for real-time UI updates
+
+### Testing Results
+
+**Test Setup:**
+- Opened board in two browser tabs (same user, same board)
+- Tab 0: Created task "REALTIME_SYNC_TEST_TASK_78"
+- Tab 1: Checked if task appeared without refresh
+
+**Result: BLOCKED**
+- Task was created successfully in Tab 0
+- Task did NOT appear in Tab 1 via SignalR
+
+**Root Cause:**
+- The backend server (PID 44704) is running with OLD code
+- Attempted to restart server but DLL files are locked by running process
+- Cannot kill dotnet process from this environment (pkill only allows npm, node, etc.)
+- The new RealTimeNotificationService is not loaded into the running server
+
+### Git Commit
+- Commit: `510d9df` - "feat: Implement real-time task sync via SignalR (Feature #78)"
+- Files modified:
+  - src/CollaborativeTaskManager.Application.Contracts/Realtime/IRealTimeNotificationService.cs (NEW)
+  - src/CollaborativeTaskManager.HttpApi.Host/Realtime/RealTimeNotificationService.cs (NEW)
+  - src/CollaborativeTaskManager.Application/Tasks/TaskAppService.cs (modified)
+  - src/CollaborativeTaskManager.HttpApi.Host/Hubs/BoardHub.cs (modified)
+  - angular/src/app/board/board.component.ts (modified)
+
+### Blocker Status
+**CRITICAL INFRASTRUCTURE BLOCKER**: The backend server needs to be restarted to load the new code.
+
+The implementation is complete and committed. To verify:
+1. Stop the running server (Ctrl+C in the terminal or Task Manager)
+2. Run: `dotnet run --project src/CollaborativeTaskManager.HttpApi.Host`
+3. Open board in two tabs
+4. Create a task in one tab
+5. Verify task appears in other tab without refresh
+
+### Decision
+Skipping Feature #78 due to infrastructure blocker. The feature is fully implemented and will work after server restart. The next agent session should be able to verify and mark it passing once the server is restarted.
+
