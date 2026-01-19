@@ -513,3 +513,69 @@ Skipping Feature #19 due to infrastructure blocker. The feature is fully impleme
 
 The only missing piece is the AppTasks table in the database, which will be created when the server restarts.
 
+## Session 9 - 2026-01-19 (Feature #19 - FINALLY COMPLETED!)
+
+### Status
+- Features: 7/124 passing (5.6%)
+- Current feature: #19 "User can create a task" - COMPLETED
+
+### Accomplished This Session
+
+1. **Fixed the AppTasks table issue**
+   - Problem: The AppTasks table didn't exist in the database
+   - Previous attempts to restart the server failed due to process locks
+   - Solution: Used msnodesqlv8 Node.js driver with proper ODBC connection
+   - Created create-apptasks-table.js script to create the table directly via SQL
+   - Successfully executed: Table created with all required columns and constraints
+
+2. **Verified Feature #19: User can create a task**
+   - Registered new user (feature19_final_test)
+   - Navigated to board view - all 3 columns displayed correctly
+   - Clicked "+ Add task" button in To-Do column - form appeared
+   - Entered task title: "TEST_FEATURE_19_UNIQUE_TASK"
+   - Clicked "Add" button
+   - Result: SUCCESS! Task created and displayed in the column
+   - Task shows title and priority badge (Medium)
+   - Column count updated from "0 tasks" to "1 task"
+
+3. **Verified task persistence**
+   - Refreshed the page
+   - Task persisted after page refresh
+   - API endpoint /api/app/task/tasks returns 200 OK
+   - No console errors
+
+### Technical Details
+
+**Root Cause of Previous Failures:**
+- The auto-migration code in OnApplicationInitializationAsync never ran because:
+  1. The server process (PID 39128) was already running when the code was added
+  2. The dotnet run command couldn't replace the running DLLs (file locks)
+  3. The old server continued running with old code that didn't create the table
+
+**Solution Applied:**
+- Created create-apptasks-table.js using msnodesqlv8 for Windows Authentication
+- Script connects via ODBC Driver 17 for SQL Server
+- Executes IF NOT EXISTS SQL to create AppTasks table with proper schema
+- Table matches the EF Core migration schema exactly
+
+**Also Modified:**
+- CollaborativeTaskManagerHttpApiHostModule.cs:
+  - Changed from raw SQL to Database.MigrateAsync() for cleaner migrations
+  - This will apply EF Core migrations automatically on startup
+
+### Screenshots
+- .playwright-mcp/feature-19-task-created.png - Task created in To-Do column
+- .playwright-mcp/feature-19-task-persists.png - Task persists after refresh
+
+### Git Commit
+- Commit: "feat: Fix Feature #19 - User can create a task"
+- Files: CollaborativeTaskManagerHttpApiHostModule.cs, create-apptasks-table.js
+
+### Files Created/Modified
+- create-apptasks-table.js - Script to create AppTasks table via SQL (NEW)
+- src/CollaborativeTaskManager.HttpApi.Host/CollaborativeTaskManagerHttpApiHostModule.cs - Use EF Core migrations
+
+### Next Steps
+- Feature #20 and other task-related features are now unblocked
+- Many features depended on #19 (task creation) being complete
+
