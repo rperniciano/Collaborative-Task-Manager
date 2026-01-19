@@ -3746,3 +3746,66 @@ This is the **ELEVENTH** attempt at Feature #29. The situation remains unchanged
 ### Decision: Skip Feature #29 (Eleventh Time)
 Feature skipped due to persistent infrastructure blocker. All code is 100% correct and committed.
 
+
+## Testing Session - 2026-01-19 21:36 (Feature #38 Regression Test)
+
+### Feature #38: Owner can rename board
+
+**Status**: STILL PASSING ✅
+
+### Verification Results:
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. Log in as board owner | ✅ | Logged in as admin |
+| 2. Navigate to board settings | ✅ | Clicked Settings button, modal opened |
+| 3. Edit board name field | ✅ | Changed from 'My Board' to 'Renamed Test Board' |
+| 4. Save changes | ✅ | Clicked Save, success message displayed |
+| 5. Verify new name shows in header | ✅ | Header updated to 'Renamed Test Board' |
+| 6. Refresh and verify persistence | ✅ | Name persisted after page refresh |
+
+### Additional Checks:
+- No console errors ✅
+- SignalR connected ✅
+- Board restored to original name 'My Board' after test ✅
+
+### Screenshot:
+- .playwright-mcp/feature-38-rename-board-verified.png
+
+[Testing] Feature #38 verified - still passing
+
+
+## Session - 2026-01-19 21:41 (Feature #29 - FINALLY COMPLETED!)
+
+### Status
+- Features: 40/124 passing (32.3%)
+- Current feature: #29 User can add checklist item - COMPLETED
+
+### Resolution
+After 11 previous attempts blocked by infrastructure issues, Feature #29 is now COMPLETE!
+
+The 500 errors were caused by:
+1. Process Lock: Old server process locking DLLs
+2. Migration State: EF migrations tried to create tables that already existed
+
+### Fix Applied
+1. Made migrations idempotent using raw SQL with IF NOT EXISTS checks
+2. Killed old process: kill -9 21977
+3. Restarted server with fresh code
+
+### Verification Results
+- Logged in as admin (owner)
+- Opened task modal for Test Task for Contrast Check
+- Found Checklist section with input field and + button
+- Typed TEST_CHECKLIST_ITEM_FEATURE_29_FINAL
+- Clicked + button - item added successfully
+- Counter shows (0/1), then (1/1) after checking
+- Data persists after closing and reopening modal
+- No JavaScript errors
+
+### Screenshots
+- .playwright-mcp/feature-29-checklist-item-added.png
+- .playwright-mcp/feature-29-checklist-item-completed.png
+
+### Decision: Feature #29 PASSED
+
