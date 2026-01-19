@@ -7,6 +7,7 @@ import { AuthService, EnvironmentService } from '@abp/ng.core';
 interface InviteDto {
   id: string;
   boardId: string;
+  boardName: string;
   email: string;
   token: string;
   expiresAt: string;

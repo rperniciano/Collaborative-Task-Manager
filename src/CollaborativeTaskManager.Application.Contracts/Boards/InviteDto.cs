@@ -18,6 +18,11 @@ public class InviteDto
     public Guid BoardId { get; set; }
 
     /// <summary>
+    /// The name of the board the invitation is for.
+    /// </summary>
+    public string BoardName { get; set; } = string.Empty;
+
+    /// <summary>
     /// The email address the invitation was sent to.
     /// </summary>
     public string Email { get; set; } = string.Empty;

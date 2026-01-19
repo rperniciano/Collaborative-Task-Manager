@@ -198,6 +198,7 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         {
             Id = invite.Id,
             BoardId = invite.BoardId,
+            BoardName = board.Name,
             Email = invite.Email,
             Token = invite.Token,
             ExpiresAt = invite.ExpiresAt,
@@ -226,6 +227,7 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
             {
                 Id = i.Id,
                 BoardId = i.BoardId,
+                BoardName = board.Name,
                 Email = i.Email,
                 Token = i.Token,
                 ExpiresAt = i.ExpiresAt,
@@ -381,6 +383,7 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         {
             Id = invite.Id,
             BoardId = invite.BoardId,
+            BoardName = board.Name,
             Email = invite.Email,
             Token = invite.Token,
             ExpiresAt = invite.ExpiresAt,
@@ -520,6 +523,7 @@ public class BoardAppService : CollaborativeTaskManagerAppService, IBoardAppServ
         {
             Id = invite.Id,
             BoardId = invite.BoardId,
+            BoardName = board.Name,
             Email = invite.Email,
             Token = invite.Token,
             ExpiresAt = invite.ExpiresAt,

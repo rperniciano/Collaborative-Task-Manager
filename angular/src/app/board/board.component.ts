@@ -145,7 +145,8 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   get currentUserName(): string {
     const currentUser = this.configState.getOne('currentUser');
-    return currentUser?.userName || 'User';
+    // Use display name (name property) if available, fallback to userName
+    return currentUser?.name || currentUser?.userName || 'User';
   }
 
   get currentUserId(): string | null {

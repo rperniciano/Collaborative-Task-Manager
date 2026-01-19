@@ -73,7 +73,8 @@ public class BoardHub : Hub
     public async Task JoinBoard(string boardId)
     {
         var userId = _currentUser.Id?.ToString();
-        var userName = _currentUser.UserName ?? "Unknown";
+        // Use display name if available, otherwise fallback to username
+        var displayName = _currentUser.Name ?? _currentUser.UserName ?? "Unknown";
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -88,18 +89,18 @@ public class BoardHub : Hub
         boardUsers[userId] = new UserPresence
         {
             UserId = userId,
-            UserName = userName,
+            UserName = displayName,
             ConnectionId = Context.ConnectionId,
             JoinedAt = DateTime.UtcNow
         };
 
         // Notify others that user joined
-        await Clients.OthersInGroup(groupName).SendAsync("UserJoined", userId, userName);
+        await Clients.OthersInGroup(groupName).SendAsync("UserJoined", userId, displayName);
 
         // Send updated presence list to all in group
         await SendPresenceUpdate(boardId);
 
-        Console.WriteLine($"[SignalR] User {userName} joined board {boardId}");
+        Console.WriteLine($"[SignalR] User {displayName} joined board {boardId}");
     }
 
     /// <summary>
@@ -109,7 +110,8 @@ public class BoardHub : Hub
     public async Task LeaveBoard(string boardId)
     {
         var userId = _currentUser.Id?.ToString();
-        var userName = _currentUser.UserName ?? "Unknown";
+        // Use display name if available, otherwise fallback to username
+        var displayName = _currentUser.Name ?? _currentUser.UserName ?? "Unknown";
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -126,12 +128,12 @@ public class BoardHub : Hub
         }
 
         // Notify others that user left
-        await Clients.OthersInGroup(groupName).SendAsync("UserLeft", userId, userName);
+        await Clients.OthersInGroup(groupName).SendAsync("UserLeft", userId, displayName);
 
         // Send updated presence list
         await SendPresenceUpdate(boardId);
 
-        Console.WriteLine($"[SignalR] User {userName} left board {boardId}");
+        Console.WriteLine($"[SignalR] User {displayName} left board {boardId}");
     }
 
     /// <summary>
